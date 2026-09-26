@@ -177,13 +177,16 @@ test('webhook verifies signatures and logs paid orders without card data', async
     const good = await fetch(base + '/api/stripe/webhook', { method: 'POST', headers: { 'Content-Type': 'application/json', 'stripe-signature': 'good' }, body: JSON.stringify(event) });
     assert.equal(good.status, 200);
   });
-  assert.equal(logged.length, 1);
-  assert.match(logged[0], /cs_test_paid/);
-  assert.match(logged[0], /blue-razz:5/);
-  assert.match(logged[0], /\$34\.94/);
-  assert.match(logged[0], /Beast Mode/);
-  assert.match(logged[0], /Oakland, CA/);
-  assert.doesNotMatch(logged[0], /1 Main St|buyer@example|5555550100/);
+  const orders = logged.filter((l) => l.startsWith('[order paid]'));
+  assert.equal(orders.length, 1);
+  assert.match(orders[0], /cs_test_paid/);
+  assert.match(orders[0], /blue-razz:5/);
+  assert.match(orders[0], /\$34\.94/);
+  assert.match(orders[0], /Beast Mode/);
+  assert.match(orders[0], /Oakland, CA/);
+  assert.doesNotMatch(orders[0], /1 Main St|buyer@example|5555550100/);
+  // The request log lines for the two webhook calls carry no customer data either.
+  assert.deepEqual(logged.filter((l) => l.startsWith('[req]')).map((l) => l.replace(/ \d+ms$/, '')), ['[req] POST /api/stripe/webhook 400', '[req] POST /api/stripe/webhook 200']);
 
   const legacy = orderSummary({ id: 'x', amount_total: 100, shipping_details: { name: 'A', address: { city: 'Seattle', state: 'WA' } } });
   assert.equal(legacy.shipCity, 'Seattle, WA');
@@ -196,14 +199,16 @@ test('webhook is disabled cleanly when not configured', async () => {
   });
 });
 
-test('security headers: CSP allows Stripe + Google Fonts', async () => {
+test('security headers: CSP allows Stripe, fonts are self-hosted', async () => {
   await withServer(createApp({ stripe: null, logger: quiet }), async (base) => {
     const r = await fetch(base + '/');
     assert.equal(r.status, 200);
     const csp = r.headers.get('content-security-policy');
     assert.match(csp, /script-src 'self' https:\/\/js\.stripe\.com/);
-    assert.match(csp, /style-src 'self' https:\/\/fonts\.googleapis\.com/);
-    assert.match(csp, /font-src 'self' https:\/\/fonts\.gstatic\.com/);
+    assert.match(csp, /style-src 'self';/);
+    assert.match(csp, /font-src 'self';/);
+    assert.doesNotMatch(csp, /googleapis|gstatic/);
+    assert.doesNotMatch(await r.text(), /fonts\.googleapis|fonts\.gstatic/, 'no third-party font requests');
     assert.equal(r.headers.get('x-powered-by'), null);
     assert.ok(r.headers.get('x-content-type-options'));
   });

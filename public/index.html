@@ -21,7 +21,7 @@
   <meta name="twitter:description" content="125mg RCF caffeine per gummy. Three flavors, all equally as delicious.">
   <meta name="twitter:image" content="{{ORIGIN}}/images/og-image.jpg">
   <meta name="twitter:image:alt" content="HELLA GOOD! Energy Gummies logo with the three flavor packs">
-  <link rel="preload" as="image" href="/images/hero-marshawn.webp" imagesrcset="/images/hero-marshawn-360.webp 360w, /images/hero-marshawn.webp 593w" imagesizes="(min-width: 900px) min(593px, 50vw), min(calc(100vw - 32px), 560px)" fetchpriority="high">
+  <link rel="preload" as="image" type="image/avif" href="/images/hero-marshawn.avif" imagesrcset="/images/hero-marshawn-360.avif 360w, /images/hero-marshawn.avif 593w" imagesizes="(min-width: 900px) min(593px, 50vw), min(calc(100vw - 32px), 560px)" fetchpriority="high">
   <script src="/js/pricing.js" defer></script>
   <script src="/js/app.js" defer></script>
   {{JSONLD}}
@@ -39,7 +39,7 @@
   <header class="site-header">
     <div class="wrap header-row">
       <a class="brand" href="#top" aria-label="HELLA GOOD! Energy Gummies, back to top">
-        <span class="brand-hella">HELLA</span><span class="brand-good">GOOD!</span>
+        <span class="brand-hella">HELLA</span> <span class="brand-good">GOOD!</span>
       </a>
       <nav class="nav" aria-label="Main">
         <a href="#flavors">Flavors</a>
@@ -65,10 +65,10 @@
       <div class="bolts" aria-hidden="true"></div>
       <div class="wrap hero-grid">
         <h1 class="hero-logo">
-          <img src="/images/logo-lockup.webp" width="593" height="374" alt="Marshawn Lynch HELLA GOOD! Energy Gummies" fetchpriority="high">
+          <picture><source type="image/avif" srcset="/images/logo-lockup.avif"><img src="/images/logo-lockup.webp" width="593" height="374" alt="Marshawn Lynch HELLA GOOD! Energy Gummies" fetchpriority="high"></picture>
         </h1>
         <div class="hero-media">
-          <img src="/images/hero-marshawn.webp" srcset="/images/hero-marshawn-360.webp 360w, /images/hero-marshawn.webp 593w" sizes="(min-width: 900px) min(593px, 50vw), min(calc(100vw - 32px), 560px)" width="593" height="389" alt="Marshawn Lynch holding a pack of Strawberry Lemonade HELLA GOOD! Energy Gummies" fetchpriority="high">
+          <picture><source type="image/avif" srcset="/images/hero-marshawn-360.avif 360w, /images/hero-marshawn.avif 593w" sizes="(min-width: 900px) min(593px, 50vw), min(calc(100vw - 32px), 560px)"><img src="/images/hero-marshawn.webp" srcset="/images/hero-marshawn-360.webp 360w, /images/hero-marshawn.webp 593w" sizes="(min-width: 900px) min(593px, 50vw), min(calc(100vw - 32px), 560px)" width="593" height="389" alt="Marshawn Lynch holding a pack of Strawberry Lemonade HELLA GOOD! Energy Gummies" fetchpriority="high"></picture>
         </div>
         <div class="hero-copy">
           <p class="hero-kicker"><span>125MG</span> RCF caffeine per gummy</p>
@@ -96,7 +96,7 @@
 
         <div class="flavor-grid" data-flavor-grid>
           <article class="flavor-card" data-flavor="blue-razz" data-color="blue">
-            <div class="flavor-img"><img src="/images/pack-blue-razz.webp" width="261" height="453" loading="lazy" decoding="async" alt="Blue Razz HELLA GOOD! Energy Gummies pack"></div>
+            <div class="flavor-img"><picture><source type="image/avif" srcset="/images/pack-blue-razz.avif"><img src="/images/pack-blue-razz.webp" width="261" height="453" loading="lazy" decoding="async" alt="Blue Razz HELLA GOOD! Energy Gummies pack"></picture></div>
             <div class="flavor-body">
               <h3 class="flavor-name" id="fn-blue-razz">Blue Razz</h3>
               <p class="flavor-spec"><strong>125mg</strong> RCF caffeine per gummy</p>
@@ -115,7 +115,7 @@
           </article>
 
           <article class="flavor-card" data-flavor="strawberry-lemonade" data-color="red">
-            <div class="flavor-img"><img src="/images/pack-strawberry-lemonade.webp" width="309" height="513" loading="lazy" decoding="async" alt="Strawberry Lemonade HELLA GOOD! Energy Gummies pack"></div>
+            <div class="flavor-img"><picture><source type="image/avif" srcset="/images/pack-strawberry-lemonade.avif"><img src="/images/pack-strawberry-lemonade.webp" width="309" height="513" loading="lazy" decoding="async" alt="Strawberry Lemonade HELLA GOOD! Energy Gummies pack"></picture></div>
             <div class="flavor-body">
               <h3 class="flavor-name" id="fn-strawberry-lemonade">Strawberry Lemonade</h3>
               <p class="flavor-spec"><strong>125mg</strong> RCF caffeine per gummy</p>
@@ -134,7 +134,7 @@
           </article>
 
           <article class="flavor-card" data-flavor="orange-pineapple-mango" data-color="orange">
-            <div class="flavor-img"><img src="/images/pack-orange-pineapple-mango.webp" width="264" height="453" loading="lazy" decoding="async" alt="Orange Pineapple Mango HELLA GOOD! Energy Gummies pack"></div>
+            <div class="flavor-img"><picture><source type="image/avif" srcset="/images/pack-orange-pineapple-mango.avif"><img src="/images/pack-orange-pineapple-mango.webp" width="264" height="453" loading="lazy" decoding="async" alt="Orange Pineapple Mango HELLA GOOD! Energy Gummies pack"></picture></div>
             <div class="flavor-body">
               <h3 class="flavor-name" id="fn-orange-pineapple-mango">Orange Pineapple Mango</h3>
               <p class="flavor-spec"><strong>125mg</strong> RCF caffeine per gummy</p>
@@ -153,7 +153,7 @@
           </article>
         </div>
 
-        <p class="mixnote"><svg class="ico" aria-hidden="true"><use href="#i-bolt"/></svg> Flavors mix &amp; match toward your discount. <a href="#pricing">See pricing tiers</a></p>
+        <p class="mixnote"><svg class="ico" aria-hidden="true"><use href="#i-bolt"/></svg> Flavors mix &amp; match toward your discount. <a class="nowrap" href="#pricing">See pricing tiers</a></p>
 
         <div class="legal-box" role="note" aria-label="Product safety information">
           <p><strong>Caffeine warning:</strong> Contains 125mg caffeine per gummy. Not recommended for children, pregnant or nursing women, or people sensitive to caffeine. Do not exceed <mark class="todo" title="TODO for Nav: set the daily maximum">[TODO Nav: daily max]</mark> gummies per day. Consult a physician if you have a medical condition.</p>
@@ -168,7 +168,7 @@
       <div class="glow glow-red" aria-hidden="true"></div>
       <div class="wrap one-five-grid">
         <div class="one-five-media">
-          <img src="/images/one-pack-five.webp" srcset="/images/one-pack-five-360.webp 360w, /images/one-pack-five.webp 562w" sizes="(min-width: 900px) 562px, min(calc(100vw - 32px), 470px)" width="562" height="676" loading="lazy" decoding="async" alt="Strawberry Lemonade pack reading 1 gummy contains 125mg RCF caffeine and 1 pack equals 5 energy drinks">
+          <picture><source type="image/avif" srcset="/images/one-pack-five-360.avif 360w, /images/one-pack-five.avif 562w" sizes="(min-width: 900px) 562px, min(calc(100vw - 32px), 470px)"><img src="/images/one-pack-five.webp" srcset="/images/one-pack-five-360.webp 360w, /images/one-pack-five.webp 562w" sizes="(min-width: 900px) 562px, min(calc(100vw - 32px), 470px)" width="562" height="676" loading="lazy" decoding="async" alt="Strawberry Lemonade pack reading 1 gummy contains 125mg RCF caffeine and 1 pack equals 5 energy drinks"></picture>
         </div>
         <div class="one-five-copy">
           <h2 id="one-five-title" class="equation">
@@ -187,7 +187,7 @@
     <section class="section raw" id="raw-coffee" aria-labelledby="raw-title">
       <div class="wrap raw-grid">
         <div class="raw-badge">
-          <img src="/images/rcf-badge.webp" width="225" height="195" loading="lazy" decoding="async" alt="Revibe RCF Raw Coffee Fiber badge">
+          <picture><source type="image/avif" srcset="/images/rcf-badge.avif"><img src="/images/rcf-badge.webp" width="225" height="195" loading="lazy" decoding="async" alt="Revibe RCF Raw Coffee Fiber badge"></picture>
         </div>
         <div class="raw-copy">
           <p class="eyebrow">The source of the kick</p>
@@ -206,7 +206,7 @@
     <section class="section community" id="community" aria-labelledby="community-title">
       <div class="wrap community-grid">
         <figure class="community-photo">
-          <img src="/images/community-camp.webp" srcset="/images/community-camp-360.webp 360w, /images/community-camp.webp 494w" sizes="(min-width: 900px) 494px, min(calc(100vw - 32px), 494px)" width="494" height="390" loading="lazy" decoding="async" alt="Marshawn Lynch with young athletes in HELLA GOOD! Energy Camp shirts at a football camp">
+          <picture><source type="image/avif" srcset="/images/community-camp-360.avif 360w, /images/community-camp.avif 494w" sizes="(min-width: 900px) 494px, min(calc(100vw - 32px), 494px)"><img src="/images/community-camp.webp" srcset="/images/community-camp-360.webp 360w, /images/community-camp.webp 494w" sizes="(min-width: 900px) 494px, min(calc(100vw - 32px), 494px)" width="494" height="390" loading="lazy" decoding="async" alt="Marshawn Lynch with young athletes in HELLA GOOD! Energy Camp shirts at a football camp"></picture>
         </figure>
         <div class="community-copy">
           <p class="eyebrow">Fueling people, families, communities</p>

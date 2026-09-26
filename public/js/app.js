@@ -102,7 +102,7 @@
     const was = tier.percentOff ? `<s>${money(P.BASE_UNIT_CENTS)}</s>` : '';
     return `
       <li class="cart-line" data-color="${flavor.color}" data-line="${flavor.id}">
-        <img src="${flavor.image}" alt="" width="64" height="80" loading="lazy">
+        <picture><source type="image/avif" srcset="${flavor.image.replace(/\.webp$/, '.avif')}"><img src="${flavor.image}" alt="" width="64" height="80" loading="lazy"></picture>
         <div>
           <h3>${flavor.name}</h3>
           <p class="unit">${was}${money(line.unitCents)} / pack</p>
@@ -226,6 +226,7 @@
   const panel = $('.drawer-panel', drawer);
   const openers = $$('[data-open-cart]');
   let lastFocus = null;
+  let openingTimer = null;
 
   // While the drawer is open everything behind it is inert (not focusable, hidden from screen readers).
   // The live region stays outside so cart updates are still announced.
@@ -241,6 +242,10 @@
     document.documentElement.classList.add('no-scroll');
     setBackgroundInert(true);
     openers.forEach((b) => b.setAttribute('aria-expanded', 'true'));
+    // The lines fade in one after another on open only, not on every re-render.
+    drawer.classList.add('opening');
+    clearTimeout(openingTimer);
+    openingTimer = setTimeout(() => drawer.classList.remove('opening'), 700);
     requestAnimationFrame(() => {
       drawer.classList.add('open');
       panel.focus({ preventScroll: true });
@@ -409,6 +414,42 @@
   }
   window.addEventListener('hashchange', openFromHash);
   openFromHash();
+
+  /* ---------- entrance motion (skipped entirely when the visitor prefers reduced motion) ---------- */
+  // Blocks below the fold fade up the first time they scroll into view. Anything already on screen at load
+  // is left alone, so nothing visible ever flashes, and without JS everything simply shows.
+  const REVEAL = '.nd-head, .flavor-card, .mixnote, .one-five-media, .one-five-copy, .raw-badge, .raw-copy, .facts li, .community-photo, .community-copy, .pricing .eyebrow, .pricing .h2, .tier, .tier-foot, .faq .h2, .faq-list';
+  if ('IntersectionObserver' in window && window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          if (!en.isIntersecting) return;
+          const el = en.target;
+          io.unobserve(el);
+          // Once it has arrived, drop the reveal styles so hover transitions run at their own speed.
+          const done = (e) => {
+            if (e && e.target !== el) return;
+            el.classList.remove('reveal', 'in');
+            el.style.transitionDelay = '';
+            el.removeEventListener('transitionend', done);
+          };
+          el.addEventListener('transitionend', done);
+          setTimeout(done, 1400);
+          el.classList.add('in');
+        });
+      },
+      { rootMargin: '0px 0px -8% 0px' }
+    );
+    const vh = window.innerHeight;
+    $$(REVEAL).forEach((el) => {
+      if (el.getBoundingClientRect().top < vh) return;
+      // Siblings in a row (cards, tiers, facts) arrive slightly staggered.
+      const i = Array.prototype.indexOf.call(el.parentElement.children, el);
+      if (el.matches('.flavor-card, .tier, .facts li')) el.style.transitionDelay = `${Math.min(i, 3) * 70}ms`;
+      el.classList.add('reveal');
+      io.observe(el);
+    });
+  }
 
   fetch('/api/config')
     .then((r) => r.json())

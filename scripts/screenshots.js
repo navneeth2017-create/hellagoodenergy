@@ -32,11 +32,13 @@ const PREFIX = process.env.SHOT_PREFIX || 'hgg';
 const CART_5 = { 'blue-razz': 2, 'strawberry-lemonade': 2, 'orange-pineapple-mango': 1 };
 
 async function settle(page) {
-  // Google Fonts can be slow through a proxy: reload a couple of times before giving up.
+  // Make sure the real faces loaded (document.fonts.check() is also true when no face is declared at all).
   for (let i = 0; i < 3; i++) {
     const ok = await page.evaluate(async () => {
-      await document.fonts.ready;
-      return ['900 italic 40px "Barlow Condensed"', '800 italic 26px "Barlow Condensed"', '800 16px "Barlow Condensed"', '400 16px Inter'].every((f) => document.fonts.check(f));
+      const specs = ['900 italic 40px "Barlow Condensed"', '800 italic 26px "Barlow Condensed"', '800 16px "Barlow Condensed"', '400 16px Inter'];
+      await Promise.all(specs.map((f) => document.fonts.load(f).catch(() => [])));
+      const loaded = new Set(Array.from(document.fonts).filter((f) => f.status === 'loaded').map((f) => f.family.replace(/["']/g, '')));
+      return loaded.has('Barlow Condensed') && loaded.has('Inter');
     });
     if (ok) break;
     await page.reload({ waitUntil: 'load' });
@@ -44,16 +46,19 @@ async function settle(page) {
   await page.evaluate(async () => {
     document.querySelectorAll('img[loading="lazy"]').forEach((img) => { img.loading = 'eager'; });
     await document.fonts.ready;
-    for (let y = 0; y < document.body.scrollHeight; y += 600) {
-      window.scrollTo(0, y);
-      await new Promise((r) => setTimeout(r, 40));
+    // Scroll through slowly so lazy images load and every entrance animation gets triggered.
+    for (let y = 0; y < document.body.scrollHeight; y += 400) {
+      window.scrollTo({ top: y, behavior: 'instant' });
+      await new Promise((r) => setTimeout(r, 120));
     }
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'instant' });
     const imgs = Array.from(document.images).filter((img) => img.offsetParent !== null);
     const loaded = Promise.all(imgs.map((img) => (img.complete ? null : new Promise((r) => { img.onload = img.onerror = r; }))));
     await Promise.race([loaded, new Promise((r) => setTimeout(r, 5000))]);
   });
-  await page.waitForTimeout(250);
+  await page.waitForTimeout(1000); // let the last entrance transitions finish
+  const hidden = await page.evaluate(() => document.querySelectorAll('.reveal:not(.in)').length);
+  if (hidden) throw new Error(`${hidden} blocks never finished their entrance animation on ${page.url()}`);
 }
 
 (async () => {
@@ -124,7 +129,10 @@ async function settle(page) {
       await page.screenshot({ path: full, fullPage: true });
       files.push(full);
 
-      const font = await page.evaluate(() => document.fonts.check('900 italic 40px "Barlow Condensed"') && document.fonts.check('400 16px Inter'));
+      const font = await page.evaluate(() => {
+        const loaded = Array.from(document.fonts).filter((f) => f.status === 'loaded').map((f) => f.family.replace(/["']/g, ''));
+        return loaded.includes('Barlow Condensed') && loaded.includes('Inter');
+      });
       if (!font) problems.push(`[${vp.name}] display font did not load (fallback in use)`);
 
       // Cart with 5 mixed packs -> 10% tier

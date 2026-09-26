@@ -1,5 +1,6 @@
 'use strict';
 
+const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
@@ -7,6 +8,7 @@ const compression = require('compression');
 const { rateLimit } = require('express-rate-limit');
 const pricing = require('./public/js/pricing.js');
 const site = require('./lib/site.js');
+const pkg = require('./package.json');
 
 const CHECKOUT_SOON = 'Checkout opens soon! Online ordering for HELLA GOOD! Energy Gummies is almost live. Your cart is saved.';
 
@@ -86,6 +88,44 @@ function orderSummary(session) {
   };
 }
 
+/**
+ * A request path that is safe to log: no query string (it can carry ids), no control characters, and
+ * anything shaped like an email address or a long number (phone, card, order) is redacted.
+ */
+function logPath(url) {
+  let p = String(url || '').split('?')[0].split('#')[0];
+  try {
+    p = decodeURIComponent(p);
+  } catch (e) {
+    /* keep the raw path */
+  }
+  return p
+    .slice(0, 200)
+    .replace(/[^\x21-\x7e]/g, '?')
+    .replace(/[^/@]*@[^/@]*/g, '[redacted]')
+    .replace(/\d{6,}/g, '[redacted]');
+}
+
+const STATIC_RE = /^\/(?:css|js|images|fonts)\/|^\/(?:favicon\.svg|favicon\.ico|apple-touch-icon\.png)$/;
+
+/**
+ * One line per request: method, path, status and duration. Never the IP, user agent, referrer, cookies,
+ * query string or body. Health checks and successful static asset hits are skipped to keep the log readable.
+ */
+function requestLogger(log) {
+  return (req, res, next) => {
+    const start = process.hrtime.bigint();
+    res.on('finish', () => {
+      const p = logPath(req.originalUrl);
+      if (p === '/health') return;
+      if (res.statusCode < 400 && STATIC_RE.test(p)) return;
+      const ms = Number(process.hrtime.bigint() - start) / 1e6;
+      log.info(`[req] ${req.method} ${p} ${res.statusCode} ${Math.round(ms)}ms`);
+    });
+    next();
+  };
+}
+
 const SESSION_ID_RE = /^cs_(?:test|live)_[A-Za-z0-9]{8,250}$/;
 const PRODUCT_PREFIX = 'HELLA GOOD! Energy Gummies: ';
 
@@ -138,10 +178,14 @@ function createApp(opts = {}) {
   const webhookSecret = 'webhookSecret' in opts ? opts.webhookSecret : process.env.STRIPE_WEBHOOK_SECRET;
   const publicUrl = 'publicUrl' in opts ? opts.publicUrl : process.env.PUBLIC_URL;
   const log = opts.logger || console;
+  const commit = 'commit' in opts ? opts.commit : process.env.RAILWAY_GIT_COMMIT_SHA;
+  const version = commit ? String(commit).slice(0, 7) : pkg.version;
 
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', 1); // Railway sits behind one proxy hop
+  app.locals.draining = false; // set on SIGTERM so /health tells the proxy to stop sending traffic
+  app.use(requestLogger(log));
 
   app.use(
     helmet({
@@ -150,8 +194,8 @@ function createApp(opts = {}) {
         directives: {
           'default-src': ["'self'"],
           'script-src': ["'self'", 'https://js.stripe.com'],
-          'style-src': ["'self'", 'https://fonts.googleapis.com'],
-          'font-src': ["'self'", 'https://fonts.gstatic.com'],
+          'style-src': ["'self'"],
+          'font-src': ["'self'"],
           'img-src': ["'self'", 'data:', 'https://*.stripe.com'],
           'connect-src': ["'self'", 'https://api.stripe.com'],
           'frame-src': ['https://js.stripe.com', 'https://hooks.stripe.com', 'https://checkout.stripe.com'],
@@ -167,7 +211,17 @@ function createApp(opts = {}) {
   );
   app.use(compression());
 
-  app.get('/health', (req, res) => res.json({ ok: true, checkout: Boolean(stripe) }));
+  app.get('/health', (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    const body = { ok: !app.locals.draining, checkout: Boolean(stripe), version, commit: commit || null };
+    res.status(app.locals.draining ? 503 : 200).json(body);
+  });
+
+  // Nothing under /api is ever cached: prices, config and checkout sessions are per request.
+  app.use('/api', (req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    next();
+  });
 
   // Stripe webhook needs the raw body for signature checks, so it is mounted before express.json.
   app.post('/api/stripe/webhook', express.raw({ type: 'application/json', limit: '1mb' }), async (req, res) => {
@@ -189,7 +243,6 @@ function createApp(opts = {}) {
   app.use('/api', express.json({ limit: '10kb' }));
 
   app.get('/api/config', (req, res) => {
-    res.set('Cache-Control', 'no-store');
     res.json({ checkoutEnabled: Boolean(stripe), checkoutMessage: stripe ? null : CHECKOUT_SOON });
   });
 
@@ -236,6 +289,14 @@ function createApp(opts = {}) {
     res.set('Cache-Control', 'public, max-age=3600').type('application/xml').send(site.sitemapXml(originFor(req), renderer.sitemapRoutes()));
   });
 
+  // RFC 9116. Expires is always about six months out; the contact is a placeholder until Nav sets one.
+  app.get('/.well-known/security.txt', (req, res) => {
+    const expires = new Date(Date.now() + 182 * 24 * 60 * 60 * 1000);
+    expires.setUTCHours(0, 0, 0, 0);
+    res.set('Cache-Control', 'public, max-age=86400').type('text/plain').send(site.securityTxt(originFor(req), expires));
+  });
+  app.get('/security.txt', (req, res) => res.redirect(301, '/.well-known/security.txt'));
+
   app.get('/success', async (req, res) => {
     res.set('Referrer-Policy', 'no-referrer');
     const id = typeof req.query.session_id === 'string' ? req.query.session_id : '';
@@ -273,39 +334,97 @@ function createApp(opts = {}) {
   });
 
   const YEAR = 365 * 24 * 60 * 60;
+  const assetCache = (req) =>
+    typeof req.query.v === 'string' ? `public, max-age=${YEAR}, immutable` : 'public, max-age=3600';
+
+  // The stylesheet is minified once at startup and served from memory.
+  const css = site.minifyCss(fs.readFileSync(path.join(__dirname, 'public', 'css', 'styles.css'), 'utf8'));
+  app.get('/css/styles.css', (req, res) => {
+    res.set('Cache-Control', assetCache(req)).type('text/css').send(css);
+  });
+
   app.use(
     express.static(path.join(__dirname, 'public'), {
       index: false,
       setHeaders(res, filePath) {
-        // Pages reference assets as ?v=<content hash>, so those URLs can be cached for a year.
+        // Pages reference assets as ?v=<content hash>, and font file names carry their upstream version,
+        // so both can be cached for a year.
         const versioned = res.req && res.req.query && typeof res.req.query.v === 'string';
-        if (versioned) res.setHeader('Cache-Control', `public, max-age=${YEAR}, immutable`);
-        else if (/\.(webp|png|jpg|svg|ico)$/.test(filePath)) res.setHeader('Cache-Control', 'public, max-age=604800');
+        if (versioned || /\.woff2$/.test(filePath)) res.setHeader('Cache-Control', `public, max-age=${YEAR}, immutable`);
+        else if (/\.(avif|webp|png|jpg|svg|ico)$/.test(filePath)) res.setHeader('Cache-Control', 'public, max-age=604800');
         else res.setHeader('Cache-Control', 'public, max-age=3600');
       },
     })
   );
 
+  // Test hook: extra routes that run before the 404 handler (used to exercise the error page).
+  if (typeof opts.extraRoutes === 'function') opts.extraRoutes(app);
+
   app.use((req, res) => sendPage(req, res, '404', {}, 404));
 
   // eslint-disable-next-line no-unused-vars
   app.use((err, req, res, next) => {
+    if (res.headersSent) return next(err); // Express closes the connection
+    res.set('Cache-Control', 'no-store');
+    const wantsJson = req.originalUrl.startsWith('/api') || !req.accepts('html');
     if (err && err.type === 'entity.parse.failed') return res.status(400).json({ ok: false, error: 'Invalid JSON.' });
     if (err && err.type === 'entity.too.large') return res.status(413).json({ ok: false, error: 'Request too large.' });
-    log.error('[error]', err && err.message);
-    res.status(500).json({ ok: false, error: 'Something went wrong.' });
+    const status = Number(err && (err.status || err.statusCode));
+    if (status >= 400 && status < 500) {
+      // Client errors (a malformed URL, say): short answer, nothing logged beyond the request line.
+      if (wantsJson) return res.status(status).json({ ok: false, error: 'Bad request.' });
+      if (status === 404) return sendPage(req, res, '404', {}, 404);
+      return res.status(status).type('text/plain').send('Bad request.');
+    }
+    log.error('[error]', req.method, logPath(req.originalUrl), err && err.message);
+    if (wantsJson) return res.status(500).json({ ok: false, error: 'Something went wrong.' });
+    try {
+      res.status(500).type('html').send(renderer.render('500', { origin: originFor(req), checkoutEnabled: Boolean(stripe) }));
+    } catch (e) {
+      res.status(500).type('text/plain').send('Something went wrong. Please try again in a moment.');
+    }
   });
 
   return app;
 }
 
-if (require.main === module) {
-  const port = Number(process.env.PORT) || 3000;
+/**
+ * Listen on PORT and shut down cleanly on SIGTERM / SIGINT (Railway sends SIGTERM on every redeploy):
+ * /health starts answering 503, the listener stops taking new connections, in-flight requests finish,
+ * idle keep-alive sockets are closed, and the process exits 0. After `graceMs` it exits 1 regardless.
+ */
+function start({ port = process.env.PORT ? Number(process.env.PORT) : 3000, graceMs = 10000, log = console } = {}) {
   const app = createApp();
-  app.listen(port, () => {
+  const server = app.listen(port, (err) => {
+    if (err) {
+      log.error(`Could not listen on :${port}: ${err.message}`);
+      process.exit(1);
+    }
     const mode = process.env.STRIPE_SECRET_KEY ? 'Stripe checkout ON' : 'Stripe key not set: checkout shows "opens soon"';
-    console.log(`HELLA GOOD! storefront on :${port} (${mode})`);
+    log.log(`HELLA GOOD! storefront on :${server.address().port} (${mode})`);
   });
+  let stopping = false;
+  const shutdown = (signal) => {
+    if (stopping) return;
+    stopping = true;
+    app.locals.draining = true;
+    log.log(`[shutdown] ${signal}: finishing in-flight requests`);
+    server.close((err) => {
+      log.log('[shutdown] done');
+      process.exit(err ? 1 : 0);
+    });
+    server.closeIdleConnections();
+    setTimeout(() => {
+      log.error(`[shutdown] still busy after ${graceMs}ms, exiting`);
+      server.closeAllConnections();
+      process.exit(1);
+    }, graceMs).unref();
+  };
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  return server;
 }
 
-module.exports = { createApp, buildCheckoutSession, orderSummary, successHtml, CHECKOUT_SOON };
+if (require.main === module) start();
+
+module.exports = { createApp, start, buildCheckoutSession, orderSummary, successHtml, logPath, CHECKOUT_SOON };

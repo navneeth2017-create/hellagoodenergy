@@ -8,6 +8,7 @@ Outputs
   public/apple-touch-icon.png       180x180, the favicon bolt on solid black (iOS rounds the corners itself)
   public/favicon.ico                16/32/48 fallback for browsers that ignore the SVG icon
   public/images/*-360.webp          360px-wide variants for srcset on 1x phones
+  public/images/*.avif              an AVIF twin of every WebP (about half the bytes), served first through <picture>
 """
 import math
 import random
@@ -196,7 +197,16 @@ def build_variants():
         print(f"{path.relative_to(ROOT)}  {w}x{h}  {path.stat().st_size // 1024} KB")
 
 
+def build_avif():
+    """An AVIF copy of every WebP crop. Quality 60 is visually identical here at roughly half the size."""
+    for src in sorted(IMG.glob("*.webp")):
+        path = src.with_suffix(".avif")
+        Image.open(src).save(path, "AVIF", quality=60, speed=4)
+        print(f"{path.relative_to(ROOT)}  {src.stat().st_size // 1024} KB webp -> {path.stat().st_size // 1024} KB avif")
+
+
 if __name__ == "__main__":
     build_og()
     build_icons()
     build_variants()
+    build_avif()
