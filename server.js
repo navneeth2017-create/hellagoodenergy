@@ -19,12 +19,12 @@ const CHECKOUT_SOON = 'Checkout opens soon! Online ordering for HELLA GOOD! Ener
  */
 function cleanSecretKey(raw) {
   const k = String(raw || '').trim().replace(/^['"]|['"]$/g, '');
-  return /^(?:sk|rk)_(?:live|test)_[A-Za-z0-9]+$/.test(k) ? k : '';
+  return /^(?:sk|rk)_(?:live|test)_\w+$/.test(k) ? k : '';
 }
 /** The webhook signing secret, or '' unless it looks like one (whsec_…). */
 function cleanWebhookSecret(raw) {
   const k = String(raw || '').trim().replace(/^['"]|['"]$/g, '');
-  return /^whsec_[A-Za-z0-9]+$/.test(k) ? k : '';
+  return /^whsec_\w+$/.test(k) ? k : '';
 }
 /** One line for the boot log about the key, never the key itself. */
 function keyStatus(raw) {
