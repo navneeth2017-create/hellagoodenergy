@@ -12,7 +12,30 @@ const pkg = require('./package.json');
 
 const CHECKOUT_SOON = 'Checkout opens soon! Online ordering for HELLA GOOD! Energy Gummies is almost live. Your cart is saved.';
 
+/**
+ * The secret key as pasted into Railway, or '' when it's unset, empty, or clearly not a Stripe secret key
+ * (a publishable pk_ key, a placeholder, stray quotes). Only sk_/rk_ keys turn checkout on, so a key pasted
+ * into the wrong box leaves the store on "Checkout opens soon" instead of failing at the customer's checkout.
+ */
+function cleanSecretKey(raw) {
+  const k = String(raw || '').trim().replace(/^['"]|['"]$/g, '');
+  return /^(?:sk|rk)_(?:live|test)_[A-Za-z0-9]+$/.test(k) ? k : '';
+}
+/** The webhook signing secret, or '' unless it looks like one (whsec_…). */
+function cleanWebhookSecret(raw) {
+  const k = String(raw || '').trim().replace(/^['"]|['"]$/g, '');
+  return /^whsec_[A-Za-z0-9]+$/.test(k) ? k : '';
+}
+/** One line for the boot log about the key, never the key itself. */
+function keyStatus(raw) {
+  if (!String(raw || '').trim()) return 'Stripe key not set: checkout shows "opens soon"';
+  const k = cleanSecretKey(raw);
+  if (!k) return 'STRIPE_SECRET_KEY is set but is not a Stripe secret key (it must start with sk_live_ or sk_test_): checkout stays off';
+  return `Stripe checkout ON (${k.includes('_live_') ? 'live' : 'TEST'} mode)`;
+}
+
 function makeStripe(secretKey) {
+  secretKey = cleanSecretKey(secretKey);
   if (!secretKey) return null;
   const Stripe = require('stripe');
   return new Stripe(secretKey, { maxNetworkRetries: 2, appInfo: { name: 'hellagoodgummies-storefront' } });
@@ -175,7 +198,7 @@ ${rows}
 
 function createApp(opts = {}) {
   const stripe = 'stripe' in opts ? opts.stripe : makeStripe(process.env.STRIPE_SECRET_KEY);
-  const webhookSecret = 'webhookSecret' in opts ? opts.webhookSecret : process.env.STRIPE_WEBHOOK_SECRET;
+  const webhookSecret = 'webhookSecret' in opts ? opts.webhookSecret : (cleanWebhookSecret(process.env.STRIPE_WEBHOOK_SECRET) || undefined);
   const publicUrl = 'publicUrl' in opts ? opts.publicUrl : process.env.PUBLIC_URL;
   const log = opts.logger || console;
   const commit = 'commit' in opts ? opts.commit : process.env.RAILWAY_GIT_COMMIT_SHA;
@@ -400,7 +423,7 @@ function start({ port = process.env.PORT ? Number(process.env.PORT) : 3000, grac
       log.error(`Could not listen on :${port}: ${err.message}`);
       process.exit(1);
     }
-    const mode = process.env.STRIPE_SECRET_KEY ? 'Stripe checkout ON' : 'Stripe key not set: checkout shows "opens soon"';
+    const mode = keyStatus(process.env.STRIPE_SECRET_KEY);
     log.log(`HELLA GOOD! storefront on :${server.address().port} (${mode})`);
   });
   let stopping = false;
@@ -427,4 +450,4 @@ function start({ port = process.env.PORT ? Number(process.env.PORT) : 3000, grac
 
 if (require.main === module) start();
 
-module.exports = { createApp, start, buildCheckoutSession, orderSummary, successHtml, logPath, CHECKOUT_SOON };
+module.exports = { createApp, start, buildCheckoutSession, orderSummary, successHtml, logPath, CHECKOUT_SOON, cleanSecretKey, cleanWebhookSecret, keyStatus, makeStripe };
