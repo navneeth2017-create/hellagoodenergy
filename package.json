@@ -1,0 +1,25 @@
+{
+  "name": "hellagoodgummies",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Marshawn Lynch HELLA GOOD! Energy Gummies: direct-to-consumer storefront with Stripe Checkout",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test test/*.test.js",
+    "screenshots": "node scripts/screenshots.js",
+    "build:images": "python3 scripts/build_images.py"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "compression": "^1.8.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
+    "stripe": "^22.6.2"
+  },
+  "license": "UNLICENSED"
+}
