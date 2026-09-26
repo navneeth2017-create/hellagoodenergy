@@ -108,7 +108,9 @@ test('home page: SEO, sharing and icon tags, versioned assets', async () => {
     assert.match(html, /<script src="\/js\/app\.js\?v=[0-9a-f]{10}" defer><\/script>/);
     assert.doesNotMatch(html, /<!--#include|\{\{[A-Z]+\}\}/, 'no template syntax leaks');
     assert.doesNotMatch(html, /name="robots"/, 'home is indexable');
-    for (const todo of ['daily max', 'processing time', 'returns and refunds', 'support email or phone']) assert.ok(html.includes(todo), todo);
+    assert.ok(html.includes('[TODO Nav: daily max]'), 'daily max still flagged');
+    for (const gone of ['processing time', 'returns and refunds policy', 'support email or phone']) assert.ok(!html.includes(gone), gone);
+    assert.ok(html.includes('arrives within 7 days') && html.includes('unopened products within 30 days') && html.includes('admin@hellagoodenergy.com'));
     assert.ok(html.includes('href="/privacy"') && html.includes('href="/terms"'), 'footer links to the policies');
   });
 });
@@ -156,7 +158,8 @@ for (const [route, heading] of [['/privacy', /Privacy <em>Policy<\/em>/], ['/ter
       assert.ok(html.includes(`<link rel="canonical" href="${ORIGIN}${route}">`));
       assert.ok(html.includes('[Company legal name]'));
       assert.ok(html.includes('[Street address, City, State ZIP]'));
-      assert.ok(html.includes('[Support email]'));
+      assert.ok(html.includes('mailto:admin@hellagoodenergy.com'));
+      assert.ok(!html.includes('[Support email]') && !html.includes('[Support phone]'));
       assert.ok(html.includes('Stripe'));
       assert.match(html, /<footer class="site-footer">/);
       assert.doesNotMatch(html, /<!--#include|\{\{[A-Z]+\}\}/);

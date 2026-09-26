@@ -101,14 +101,14 @@ test('every route has a deliberate Cache-Control', async () => {
   });
 });
 
-test('security.txt: RFC 9116 fields, a placeholder contact flagged for Nav, and an Expires under a year out', async () => {
+test('security.txt: RFC 9116 fields, the support contact, and an Expires under a year out', async () => {
   await withServer(createApp({ stripe: null, publicUrl: ORIGIN, logger: quiet }), async (base) => {
     const r = await get(base, '/.well-known/security.txt');
     assert.equal(r.status, 200);
     assert.match(r.headers.get('content-type'), /^text\/plain/);
     const body = await r.text();
-    assert.match(body, /^Contact: mailto:security@example\.com$/m);
-    assert.match(body, /\[TODO Nav: replace the placeholder Contact/);
+    assert.match(body, /^Contact: mailto:admin@hellagoodenergy\.com$/m);
+    assert.doesNotMatch(body, /TODO/);
     assert.match(body, /^Preferred-Languages: en$/m);
     assert.ok(body.includes(`Canonical: ${ORIGIN}/.well-known/security.txt`));
     const expires = new Date(body.match(/^Expires: (.+)$/m)[1]);

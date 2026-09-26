@@ -144,9 +144,8 @@ returns to the opener, updates announced). It uses a globally installed Playwrig
 Search for the yellow `[TODO Nav: ...]` markers (in `public/*.html` and `public/partials/footer.html`):
 
 - Daily maximum gummies in the caffeine warning (product area, FAQ, footer, Terms).
-- Shipping: processing time, carrier and delivery estimate (FAQ, Terms, success page).
-- Returns and refunds policy (FAQ, Terms).
-- Support email or phone (FAQ, success page).
-- Security contact in `/.well-known/security.txt` (in `lib/site.js`): replace the placeholder `security@example.com`.
-- Review the draft Privacy Policy and Terms of Sale: fill in the legal name, address, contact, effective date, minimum
-  purchase age, governing-law state and dispute resolution, have them checked, then remove the draft banners.
+- Review the draft Privacy Policy and Terms of Sale: fill in the legal name, address, effective date, governing-law
+  state and dispute resolution, have them checked, then remove the draft banners.
+
+Filled in (Nav, 2026-09-26): orders arrive within 7 days; 30-day returns on unopened products; support and security
+contact admin@hellagoodenergy.com; no minimum buyer age.
