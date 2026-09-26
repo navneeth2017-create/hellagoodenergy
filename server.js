@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const compression = require('compression');
 const { rateLimit } = require('express-rate-limit');
 const pricing = require('./public/js/pricing.js');
+const site = require('./lib/site.js');
 
 const CHECKOUT_SOON = 'Checkout opens soon! Online ordering for HELLA GOOD! Energy Gummies is almost live. Your cart is saved.';
 
@@ -58,8 +59,8 @@ function buildCheckoutSession(items, baseUrl) {
     ],
     phone_number_collection: { enabled: true },
     billing_address_collection: 'auto',
-    success_url: `${baseUrl}/?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${baseUrl}/?checkout=cancelled`,
+    success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${baseUrl}/cancel`,
     metadata: {
       items: q.lines.map((l) => `${l.flavor}:${l.qty}`).join(','),
       total_packs: String(q.totalPacks),
@@ -83,6 +84,53 @@ function orderSummary(session) {
     shipName: ship ? ship.name : null,
     shipCity: ship && ship.address ? `${ship.address.city || ''}, ${ship.address.state || ''}`.replace(/^, |, $/g, '') : null,
   };
+}
+
+const SESSION_ID_RE = /^cs_(?:test|live)_[A-Za-z0-9]{8,250}$/;
+const PRODUCT_PREFIX = 'HELLA GOOD! Energy Gummies: ';
+
+/** The /success status card. With a retrievable Checkout Session it lists the order; otherwise a generic thank-you. */
+function successHtml(session) {
+  const esc = site.escapeHtml;
+  const lines = session && session.line_items && Array.isArray(session.line_items.data) ? session.line_items.data : null;
+  if (!session || !lines || !lines.length) {
+    return `      <section class="status-card" aria-labelledby="status-title">
+        <p class="status-badge"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg> Order received</p>
+        <h1 id="status-title" class="h2">Thank <em>you!</em></h1>
+        <p class="lede">Thanks for your order. Your HELLA GOOD! Energy Gummies are on the way soon.</p>
+      </section>`;
+  }
+  const paid = session.payment_status === 'paid' || session.payment_status === 'no_payment_required';
+  const td = session.total_details || {};
+  const pct = Number(session.metadata && session.metadata.percent_off) || 0;
+  const money = (c) => pricing.formatCents(Number(c) || 0);
+  const rows = lines
+    .map((l) => {
+      const name = String(l.description || '').replace(PRODUCT_PREFIX, '');
+      const unit = l.quantity ? Math.round((l.amount_total || 0) / l.quantity) : 0;
+      return `          <li><span class="os-name">${esc(name)}</span><span class="os-qty">${esc(l.quantity)} &times; ${money(unit)}</span><span class="os-amt">${money(l.amount_total)}</span></li>`;
+    })
+    .join('\n');
+  const extra = [];
+  if (pct > 0) extra.push(`<div class="os-save"><dt>Mix &amp; match ${pct}% off</dt><dd>included</dd></div>`);
+  extra.push(`<div><dt>Shipping</dt><dd>${money(td.amount_shipping)}</dd></div>`);
+  if (td.amount_tax) extra.push(`<div><dt>Tax</dt><dd>${money(td.amount_tax)}</dd></div>`);
+  return `      <section class="status-card" aria-labelledby="status-title">
+        <p class="status-badge${paid ? '' : ' pending'}"><svg class="ico" aria-hidden="true"><use href="#${paid ? 'i-check' : 'i-bolt'}"/></svg> ${paid ? 'Order confirmed' : 'Payment processing'}</p>
+        <h1 id="status-title" class="h2">Thank <em>you!</em></h1>
+        <p class="lede">${paid ? 'Your order is confirmed. Your HELLA GOOD! Energy Gummies are on the way soon.' : 'We have your order. It ships as soon as your payment clears.'}</p>
+        <div class="order-summary">
+          <h2 class="status-h3">Order summary <span class="os-ref">Ref &hellip;${esc(String(session.id).slice(-8))}</span></h2>
+          <ul class="os-lines">
+${rows}
+          </ul>
+          <dl class="os-totals">
+            <div><dt>Subtotal</dt><dd>${money(session.amount_subtotal)}</dd></div>
+            ${extra.join('\n            ')}
+            <div class="os-grand"><dt>Total</dt><dd>${money(session.amount_total)}</dd></div>
+          </dl>
+        </div>
+      </section>`;
 }
 
 function createApp(opts = {}) {
@@ -173,18 +221,72 @@ function createApp(opts = {}) {
 
   app.use('/api', (req, res) => res.status(404).json({ ok: false, error: 'Not found.' }));
 
+  /* ---------- pages ---------- */
+  const renderer = site.createRenderer();
+  const originFor = (req) => baseUrlFor(req, publicUrl);
+  const sendPage = (req, res, key, extra = {}, status = 200) => {
+    res.status(status).set('Cache-Control', 'no-cache').type('html');
+    res.send(renderer.render(key, { origin: originFor(req), checkoutEnabled: Boolean(stripe), ...extra }));
+  };
+
+  app.get('/robots.txt', (req, res) => {
+    res.set('Cache-Control', 'public, max-age=3600').type('text/plain').send(site.robotsTxt(originFor(req)));
+  });
+  app.get('/sitemap.xml', (req, res) => {
+    res.set('Cache-Control', 'public, max-age=3600').type('application/xml').send(site.sitemapXml(originFor(req), renderer.sitemapRoutes()));
+  });
+
+  app.get('/success', async (req, res) => {
+    res.set('Referrer-Policy', 'no-referrer');
+    const id = typeof req.query.session_id === 'string' ? req.query.session_id : '';
+    let session = null;
+    if (stripe && SESSION_ID_RE.test(id)) {
+      try {
+        session = await stripe.checkout.sessions.retrieve(id, { expand: ['line_items'] });
+      } catch (err) {
+        log.warn('[success] could not load session:', err && err.message);
+      }
+    }
+    res.set('Cache-Control', 'no-store');
+    res.type('html').send(renderer.render('/success', { origin: originFor(req), checkoutEnabled: Boolean(stripe), main: successHtml(session) }));
+  });
+
+  // Checkout Sessions created before /success and /cancel existed still return to /?checkout=...
+  app.get('/', (req, res, next) => {
+    const sid = typeof req.query.session_id === 'string' && SESSION_ID_RE.test(req.query.session_id) ? req.query.session_id : '';
+    if (req.query.checkout === 'success') return res.redirect(302, '/success' + (sid ? `?session_id=${sid}` : ''));
+    if (req.query.checkout === 'cancelled') return res.redirect(302, '/cancel');
+    next();
+  });
+
+  for (const route of Object.keys(site.PAGES)) {
+    if (route !== '/success') app.get(route, (req, res) => sendPage(req, res, route));
+  }
+
+  // Templates are never served raw: /privacy.html -> /privacy, /index.html -> /, anything else .html -> 404.
+  app.use((req, res, next) => {
+    if (!/\.html?$/i.test(req.path)) return next();
+    const clean = req.path.replace(/\.html?$/i, '').replace(/\/index$/, '/') || '/';
+    const qs = req.originalUrl.includes('?') ? req.originalUrl.slice(req.originalUrl.indexOf('?')) : '';
+    if (clean in site.PAGES) return res.redirect(301, clean + qs);
+    return sendPage(req, res, '404', {}, 404);
+  });
+
+  const YEAR = 365 * 24 * 60 * 60;
   app.use(
     express.static(path.join(__dirname, 'public'), {
-      extensions: ['html'],
+      index: false,
       setHeaders(res, filePath) {
-        if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
-        else if (/\.(webp|png|svg|ico)$/.test(filePath)) res.setHeader('Cache-Control', 'public, max-age=604800');
+        // Pages reference assets as ?v=<content hash>, so those URLs can be cached for a year.
+        const versioned = res.req && res.req.query && typeof res.req.query.v === 'string';
+        if (versioned) res.setHeader('Cache-Control', `public, max-age=${YEAR}, immutable`);
+        else if (/\.(webp|png|jpg|svg|ico)$/.test(filePath)) res.setHeader('Cache-Control', 'public, max-age=604800');
         else res.setHeader('Cache-Control', 'public, max-age=3600');
       },
     })
   );
 
-  app.use((req, res) => res.status(404).sendFile(path.join(__dirname, 'public', '404.html')));
+  app.use((req, res) => sendPage(req, res, '404', {}, 404));
 
   // eslint-disable-next-line no-unused-vars
   app.use((err, req, res, next) => {
@@ -206,4 +308,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { createApp, buildCheckoutSession, orderSummary, CHECKOUT_SOON };
+module.exports = { createApp, buildCheckoutSession, orderSummary, successHtml, CHECKOUT_SOON };

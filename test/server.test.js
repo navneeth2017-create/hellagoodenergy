@@ -128,8 +128,8 @@ test('Checkout Session payload (stubbed Stripe client)', async () => {
   assert.deepEqual(s.shipping_options[0].shipping_rate_data.fixed_amount, { amount: 799, currency: 'usd' });
   assert.equal(s.shipping_options[0].shipping_rate_data.type, 'fixed_amount');
   assert.deepEqual(s.phone_number_collection, { enabled: true });
-  assert.equal(s.success_url, 'https://hellagood.example/?checkout=success&session_id={CHECKOUT_SESSION_ID}');
-  assert.equal(s.cancel_url, 'https://hellagood.example/?checkout=cancelled');
+  assert.equal(s.success_url, 'https://hellagood.example/success?session_id={CHECKOUT_SESSION_ID}');
+  assert.equal(s.cancel_url, 'https://hellagood.example/cancel');
   assert.equal(s.metadata.items, 'blue-razz:6,strawberry-lemonade:5,orange-pineapple-mango:4');
   assert.equal(s.metadata.percent_off, '20');
 });

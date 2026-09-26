@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--#include head -->
+  <title>Checkout cancelled | HELLA GOOD! Energy Gummies</title>
+  <meta name="description" content="Your checkout was cancelled. Your cart is saved.">
+  {{ROBOTS}}
+  <script src="/js/pricing.js" defer></script>
+  <script src="/js/pages.js" defer></script>
+</head>
+<body class="page-status" data-page="cancel">
+  <a class="skip" href="#main">Skip to content</a>
+<!--#include sprite -->
+<!--#include subheader -->
+
+  <main id="main" class="status-main">
+    <div class="bolts" aria-hidden="true"></div>
+    <div class="wrap status-wrap">
+      <section class="status-card" aria-labelledby="status-title">
+        <p class="eyebrow">Checkout cancelled</p>
+        <h1 id="status-title" class="h2">No worries. <em>Your cart is saved.</em></h1>
+        <p class="lede">You have not been charged. Pick up where you left off whenever you&rsquo;re ready.</p>
+        <p class="status-cart" data-saved-cart hidden></p>
+        <div class="status-ctas">
+          <a class="btn btn-red btn-xl" href="/#cart">Back to your cart <svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg></a>
+          <a class="btn btn-ghost" href="/#flavors">Keep shopping</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+<!--#include footer -->
+</body>
+</html>

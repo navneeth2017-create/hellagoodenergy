@@ -8,8 +8,25 @@ creates Stripe Checkout Sessions. The server prices every order itself; the brow
 ```bash
 npm install
 npm start            # http://localhost:3000
-npm test             # pricing, validation, checkout payload (stubbed Stripe), webhook, headers
+npm test             # pricing, validation, checkout payload (stubbed Stripe), webhook, headers, pages, SEO
 ```
+
+## Pages
+
+| URL | What it is |
+| --- | --- |
+| `/` | The storefront. |
+| `/privacy`, `/terms` | **Drafts** of the Privacy Policy and Terms of Sale, with a yellow "Draft — Nav to review before launch" banner and placeholders for the legal name, address and contact. While a page carries `data-draft` it is served `noindex` and left out of the sitemap; delete the banner when the text is final. |
+| `/success` | Stripe's success URL. With `STRIPE_SECRET_KEY` set and a valid `session_id`, it reads the Checkout Session and shows the order summary (items, discount, shipping, total; no address or contact data). Otherwise a generic thank-you. Either way it empties the saved cart. |
+| `/cancel` | Stripe's cancel URL. Shows the saved cart and links back to it (`/#cart` opens the cart drawer). |
+| `/robots.txt`, `/sitemap.xml` | Generated from the canonical origin. |
+| anything else | Branded 404. |
+
+The HTML files in `public/` are small templates rendered by `lib/site.js`: `<!--#include name -->` pulls in
+`public/partials/` (shared head, icon sprite, sub-page header, footer), `{{ORIGIN}}` becomes the canonical origin,
+and the home page gets JSON-LD (an Organization plus one Product per flavor: $5.99 USD, `InStock` when checkout is on,
+`PreOrder` while it is off). Local asset URLs get a `?v=<content hash>` and are cached for a year; HTML is
+`no-cache`. Templates are never served raw (`/privacy.html` redirects to `/privacy`).
 
 Without `STRIPE_SECRET_KEY` the whole site works, and Checkout shows a friendly
 "Checkout opens soon" notice instead of redirecting to Stripe.
@@ -21,7 +38,7 @@ Without `STRIPE_SECRET_KEY` the whole site works, and Checkout shows a friendly
 | `STRIPE_SECRET_KEY` | For live checkout | Hella Good Energy's Stripe secret key (`sk_live_...`, or `sk_test_...` while testing). If unset, checkout returns "Checkout opens soon". |
 | `STRIPE_WEBHOOK_SECRET` | Optional | Signing secret (`whsec_...`) for `/api/stripe/webhook`. When set, paid orders are logged (order id, items, total, ship-to name and city; no card or contact data). |
 | `PORT` | Railway sets it | Port to listen on. Defaults to 3000. |
-| `PUBLIC_URL` | Recommended in production | Canonical site URL for Stripe's success/cancel links and product images, e.g. `https://www.yourdomain.com`. Falls back to Railway's domain, then the request host. |
+| `PUBLIC_URL` | Recommended in production | Canonical site URL for Stripe's success/cancel links, product images, the canonical tag, Open Graph URLs, JSON-LD, robots.txt and the sitemap, e.g. `https://www.yourdomain.com`. Falls back to Railway's domain, then the request host. |
 | `NODE_ENV` | Optional | Set to `production` to add the `upgrade-insecure-requests` CSP directive. |
 
 Never commit keys. Put them in Railway → service → **Variables**.
@@ -72,21 +89,28 @@ Connect the GitHub repo to a Railway service, add the variables above, and deplo
 must be placed in `source-pages/` locally to rebuild. Crops are exported at native size, or 1.5x at most for the
 pack shots, and displayed at sizes where they stay sharp.
 
+`npm run build:share` (Python + Pillow) builds from those crops, without `source-pages/`: the 1200x630 share image
+`public/images/og-image.jpg` (logo, the three packs, black and lightning), `public/apple-touch-icon.png`,
+`public/favicon.ico` and the 360px `*-360.webp` variants used in `srcset`.
+
 ## Visual check
 
 ```bash
 SHOT_DIR=/tmp/hgg CHROMIUM_PATH=/path/to/chrome npm run screenshots
 ```
 
-Captures the full page, the cart drawer with 5 mixed packs (10% tier) and the FAQ at 1440px and 390px, and checks
-for horizontal scroll from 360px to 1440px. It uses a globally installed Playwright; it is not a project dependency.
+Captures the full page, the cart drawer with 5 mixed packs (10% tier), the FAQ, the sticky mobile cart bar, `/privacy`,
+`/success` (with a stubbed order summary), `/cancel`, the 404 and the share image at 1440px and 390px. It checks every
+page for horizontal scroll from 360px to 1440px, and checks the cart drawer by keyboard (focus trap, Esc closes, focus
+returns to the opener, updates announced). It uses a globally installed Playwright; it is not a project dependency.
 
 ## TODO for Nav
 
-Search the page for the yellow `[TODO Nav: ...]` markers (all in `public/index.html`):
+Search for the yellow `[TODO Nav: ...]` markers (in `public/*.html` and `public/partials/footer.html`):
 
-- Daily maximum gummies in the caffeine warning (product area, FAQ, footer).
-- Shipping: processing time, carrier and delivery estimate.
-- Returns and refunds policy.
-- Support email or phone.
-- Privacy Policy and Terms of Sale pages.
+- Daily maximum gummies in the caffeine warning (product area, FAQ, footer, Terms).
+- Shipping: processing time, carrier and delivery estimate (FAQ, Terms, success page).
+- Returns and refunds policy (FAQ, Terms).
+- Support email or phone (FAQ, success page).
+- Review the draft Privacy Policy and Terms of Sale: fill in the legal name, address, contact, effective date, minimum
+  purchase age, governing-law state and dispute resolution, have them checked, then remove the draft banners.

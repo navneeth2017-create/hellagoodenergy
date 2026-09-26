@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /*
- * Visual check: full page, cart drawer (5 mixed packs = 10% tier) and FAQ at 1440 and 390 wide,
- * plus a horizontal-overflow sweep from 360 to 1440.
+ * Visual check at 1440 and 390 wide: the full home page, the cart drawer (5 mixed packs = 10% tier), the FAQ,
+ * the sticky mobile cart bar, /privacy, /success (with a stubbed order summary), /cancel, the 404 and the
+ * Open Graph image. Also a horizontal-overflow sweep of every page from 360 to 1440, and a keyboard check of
+ * the cart drawer (focus trap, Esc closes, focus returns, aria-live announcement).
  *
  *   SHOT_DIR=/tmp/shots CHROMIUM_PATH=/path/to/chrome npm run screenshots
  *
@@ -32,7 +34,10 @@ const CART_5 = { 'blue-razz': 2, 'strawberry-lemonade': 2, 'orange-pineapple-man
 async function settle(page) {
   // Google Fonts can be slow through a proxy: reload a couple of times before giving up.
   for (let i = 0; i < 3; i++) {
-    const ok = await page.evaluate(async () => { await document.fonts.ready; return document.fonts.check('900 italic 40px "Barlow Condensed"') && document.fonts.check('400 16px Inter'); });
+    const ok = await page.evaluate(async () => {
+      await document.fonts.ready;
+      return ['900 italic 40px "Barlow Condensed"', '800 italic 26px "Barlow Condensed"', '800 16px "Barlow Condensed"', '400 16px Inter'].every((f) => document.fonts.check(f));
+    });
     if (ok) break;
     await page.reload({ waitUntil: 'load' });
   }
@@ -54,9 +59,25 @@ async function settle(page) {
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
   const { chromium } = loadPlaywright();
-  const app = createApp({ stripe: null, logger: { info() {}, warn() {}, error() {}, log() {} } });
+  const quiet = { info() {}, warn() {}, error() {}, log() {} };
+  const app = createApp({ stripe: null, logger: quiet });
   const server = await new Promise((r) => { const s = app.listen(0, '127.0.0.1', () => r(s)); });
   const base = `http://127.0.0.1:${server.address().port}`;
+  // A second app with a stubbed Stripe client, only to show the /success order summary.
+  const demoSession = {
+    payment_status: 'paid', amount_subtotal: 2695, amount_total: 3494, metadata: { percent_off: '10' },
+    total_details: { amount_shipping: 799, amount_tax: 0 },
+    line_items: { data: [
+      { description: 'HELLA GOOD! Energy Gummies: Blue Razz', quantity: 2, amount_total: 1078 },
+      { description: 'HELLA GOOD! Energy Gummies: Strawberry Lemonade', quantity: 2, amount_total: 1078 },
+      { description: 'HELLA GOOD! Energy Gummies: Orange Pineapple Mango', quantity: 1, amount_total: 539 },
+    ] },
+  };
+  const stubStripe = { checkout: { sessions: { retrieve: async (id) => ({ id, ...demoSession }) } } };
+  const demo = createApp({ stripe: stubStripe, logger: quiet });
+  const demoServer = await new Promise((r) => { const s = demo.listen(0, '127.0.0.1', () => r(s)); });
+  const demoBase = `http://127.0.0.1:${demoServer.address().port}`;
+  const PAGES = ['/', '/privacy', '/terms', '/success', '/cancel', '/nope'];
 
   const proxy = process.env.HTTPS_PROXY || process.env.https_proxy;
   const browser = await chromium.launch({
@@ -68,16 +89,25 @@ async function settle(page) {
   const files = [];
 
   try {
-    // Overflow sweep
-    for (const width of [360, 390, 414, 768, 1024, 1280, 1440]) {
+    // Overflow sweep: every page, 360 to 1440 (home also with items in the cart, so the sticky bar shows)
+    for (const width of [360, 375, 390, 414, 480, 640, 768, 900, 1024, 1280, 1440]) {
       const ctx = await browser.newContext({ viewport: { width, height: 900 }, ignoreHTTPSErrors: true });
       const page = await ctx.newPage();
-      await page.goto(base, { waitUntil: 'load' });
-      await settle(page);
-      if (!(await page.$('#flavors'))) throw new Error('storefront did not load (proxy?)');
-      const o = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
-      console.log(`overflow @${width}: scrollWidth=${o.sw} clientWidth=${o.cw} ${o.sw > o.cw ? 'OVERFLOW' : 'ok'}`);
-      if (o.sw > o.cw) problems.push(`horizontal overflow at ${width}px`);
+      const row = [];
+      for (const p of PAGES) {
+        await page.goto(base + p, { waitUntil: 'load' });
+        if (p === '/') {
+          await settle(page);
+          if (!(await page.$('#flavors'))) throw new Error('storefront did not load (proxy?)');
+          await page.evaluate((c) => localStorage.setItem('hgg-cart-v1', JSON.stringify(c)), CART_5);
+          await page.reload({ waitUntil: 'load' });
+        }
+        await page.evaluate(() => document.fonts.ready);
+        const o = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
+        row.push(`${p}:${o.sw > o.cw ? 'OVERFLOW ' + o.sw : 'ok'}`);
+        if (o.sw > o.cw) problems.push(`horizontal overflow on ${p} at ${width}px (${o.sw})`);
+      }
+      console.log(`overflow @${width}: ${row.join('  ')}`);
       await ctx.close();
     }
 
@@ -139,9 +169,98 @@ async function settle(page) {
 
       await ctx.close();
     }
+
+    // Keyboard: open the drawer from a card, Tab stays inside, Esc closes, focus goes back, update is announced.
+    {
+      const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, ignoreHTTPSErrors: true });
+      const page = await ctx.newPage();
+      await page.goto(base, { waitUntil: 'load' });
+      await page.focus('[data-flavor="blue-razz"] [data-add]');
+      await page.keyboard.press('Enter');
+      await page.waitForTimeout(500);
+      const inDrawer = [];
+      for (let i = 0; i < 25; i++) {
+        await page.keyboard.press('Tab');
+        inDrawer.push(await page.evaluate(() => Boolean(document.activeElement.closest('#cart'))));
+      }
+      if (inDrawer.includes(false)) problems.push('keyboard: Tab escaped the cart drawer');
+      // Pressing + on a line keeps focus on that + button
+      await page.focus('[data-line="blue-razz"] [data-line-step="1"]');
+      await page.keyboard.press('Enter');
+      await page.waitForTimeout(200);
+      const kept = await page.evaluate(() => document.activeElement.matches('[data-line="blue-razz"] [data-line-step="1"]'));
+      if (!kept) problems.push('keyboard: focus lost after pressing + in the cart');
+      const live = await page.textContent('[data-cart-live]');
+      if (!/Cart: 2 packs/.test(live)) problems.push(`aria-live text unexpected: ${live}`);
+      const inert = await page.evaluate(() => document.querySelector('main').inert);
+      if (!inert) problems.push('background not inert while drawer open');
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(400);
+      const back = await page.evaluate(() => ({ hidden: document.getElementById('cart').hidden, focus: document.activeElement.matches('[data-flavor="blue-razz"] [data-add]') }));
+      if (!back.hidden) problems.push('keyboard: Esc did not close the drawer');
+      if (!back.focus) problems.push('keyboard: focus did not return to the opener');
+      console.log(`keyboard: trap=${!inDrawer.includes(false)} keep-focus=${kept} live="${live.trim()}" inert=${inert} esc=${back.hidden} return=${back.focus}`);
+      await ctx.close();
+    }
+
+    // Sticky mobile cart bar
+    {
+      const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, ignoreHTTPSErrors: true, deviceScaleFactor: 2 });
+      const page = await ctx.newPage();
+      await page.goto(base, { waitUntil: 'load' });
+      await settle(page);
+      await page.evaluate((c) => localStorage.setItem('hgg-cart-v1', JSON.stringify(c)), CART_5);
+      await page.reload({ waitUntil: 'load' });
+      await settle(page);
+      await page.evaluate(() => { const el = document.getElementById('flavors'); window.scrollTo(0, el.offsetTop - 60); });
+      await page.waitForTimeout(400);
+      const bar = await page.textContent('[data-cartbar]');
+      if (!/Cart · \$34\.94/.test(bar)) problems.push(`sticky bar text: ${bar}`);
+      const shot = path.join(OUT, `${PREFIX}-390-cartbar.png`);
+      await page.screenshot({ path: shot });
+      files.push(shot);
+      await ctx.close();
+    }
+
+    // Sub-pages
+    for (const vp of [{ name: '1440', width: 1440, height: 900 }, { name: '390', width: 390, height: 844 }]) {
+      const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, ignoreHTTPSErrors: true, deviceScaleFactor: vp.width < 600 ? 2 : 1 });
+      const page = await ctx.newPage();
+      page.on('pageerror', (e) => problems.push(`[${vp.name}] pageerror: ${e.message}`));
+      // The 404 page's own status shows up as a console error; that one is expected.
+      page.on('console', (m) => { if (m.type() === 'error' && !(/status of 404/.test(m.text()) && /\/nope$/.test(page.url()))) problems.push(`[${vp.name}] console: ${m.text()}`); });
+      for (const [name, url] of [
+        ['privacy', base + '/privacy'],
+        ['success', demoBase + '/success?session_id=cs_test_a1B2c3D4e5F6g7H8Demo'],
+        ['success-generic', base + '/success'],
+        ['cancel', base + '/cancel'],
+        ['404', base + '/nope'],
+      ]) {
+        if (name === 'cancel') await page.evaluate((c) => localStorage.setItem('hgg-cart-v1', JSON.stringify(c)), CART_5);
+        await page.goto(url, { waitUntil: 'load' });
+        await settle(page);
+        const shot = path.join(OUT, `${PREFIX}-${vp.name}-${name}.png`);
+        await page.screenshot({ path: shot, fullPage: name === 'privacy' || vp.width < 600 });
+        files.push(shot);
+      }
+      await ctx.close();
+    }
+
+    // The Open Graph image itself, at its native 1200x630
+    {
+      const ctx = await browser.newContext({ viewport: { width: 1200, height: 630 }, bypassCSP: true });
+      const page = await ctx.newPage();
+      await page.goto(base + '/images/og-image.jpg', { waitUntil: 'load' });
+      await page.addStyleTag({ content: 'html,body{margin:0;background:#000}img{display:block}' });
+      const shot = path.join(OUT, `${PREFIX}-og.png`);
+      await page.screenshot({ path: shot });
+      files.push(shot);
+      await ctx.close();
+    }
   } finally {
     await browser.close();
     server.close();
+    demoServer.close();
   }
 
   console.log('\nScreenshots:\n' + files.map((f) => '  ' + f).join('\n'));

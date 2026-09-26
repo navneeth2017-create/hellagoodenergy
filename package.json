@@ -9,7 +9,8 @@
     "dev": "node --watch server.js",
     "test": "node --test test/*.test.js",
     "screenshots": "node scripts/screenshots.js",
-    "build:images": "python3 scripts/build_images.py"
+    "build:images": "python3 scripts/build_images.py",
+    "build:share": "python3 scripts/build_share_images.py"
   },
   "engines": {
     "node": ">=20"

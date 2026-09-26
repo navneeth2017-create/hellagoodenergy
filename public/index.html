@@ -1,35 +1,35 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Marshawn Lynch HELLA GOOD! Energy Gummies | Shop</title>
-  <meta name="description" content="Marshawn Lynch HELLA GOOD! Energy Gummies. 125mg RCF caffeine per gummy from Revibe Raw Coffee Fiber. Blue Razz, Strawberry Lemonade and Orange Pineapple Mango. Mix & match: 10% off 5+ packs, 20% off 15+.">
-  <meta name="theme-color" content="#000000">
+<!--#include head -->
+  <title>Marshawn Lynch HELLA GOOD! Energy Gummies | Shop 3 Flavors</title>
+  <meta name="description" content="Marshawn Lynch HELLA GOOD! Energy Gummies: 125mg RCF caffeine per gummy from Revibe Raw Coffee Fiber. Three flavors. Mix &amp; match: 10% off 5+ packs, 20% off 15+.">
+  {{ROBOTS}}
+  <link rel="canonical" href="{{ORIGIN}}/">
   <meta property="og:type" content="website">
+  <meta property="og:site_name" content="HELLA GOOD! Energy Gummies">
+  <meta property="og:url" content="{{ORIGIN}}/">
   <meta property="og:title" content="Marshawn Lynch HELLA GOOD! Energy Gummies">
-  <meta property="og:description" content="125mg RCF caffeine per gummy. Three flavors, all equally as delicious.">
-  <meta property="og:image" content="/images/hero-marshawn.webp">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,800;1,800;1,900&family=Inter:wght@400;500;600;700&display=swap">
-  <link rel="preload" as="image" href="/images/logo-lockup.webp" type="image/webp">
-  <link rel="stylesheet" href="/css/styles.css">
+  <meta property="og:description" content="125mg RCF caffeine per gummy. Three flavors, all equally as delicious. Mix &amp; match: 10% off 5+ packs, 20% off 15+.">
+  <meta property="og:image" content="{{ORIGIN}}/images/og-image.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="HELLA GOOD! Energy Gummies logo with Blue Razz, Strawberry Lemonade and Orange Pineapple Mango packs">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Marshawn Lynch HELLA GOOD! Energy Gummies">
+  <meta name="twitter:description" content="125mg RCF caffeine per gummy. Three flavors, all equally as delicious.">
+  <meta name="twitter:image" content="{{ORIGIN}}/images/og-image.jpg">
+  <meta name="twitter:image:alt" content="HELLA GOOD! Energy Gummies logo with the three flavor packs">
+  <link rel="preload" as="image" href="/images/hero-marshawn.webp" imagesrcset="/images/hero-marshawn-360.webp 360w, /images/hero-marshawn.webp 593w" imagesizes="(min-width: 900px) min(593px, 50vw), min(calc(100vw - 32px), 560px)" fetchpriority="high">
   <script src="/js/pricing.js" defer></script>
   <script src="/js/app.js" defer></script>
+  {{JSONLD}}
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
 
-  <svg width="0" height="0" class="sprite" aria-hidden="true" focusable="false">
-    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.5 1.5 4 13.5h6.2L8.8 22.5 19.5 9.8h-6.4z" fill="currentColor"/></symbol>
-    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M6 7h12l1.2 13.2a1 1 0 0 1-1 1.1H5.8a1 1 0 0 1-1-1.1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 9V6a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
-    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
-    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M6 12h12" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
-    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M6 12h12M12 6v12" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
-    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-  </svg>
+<!--#include sprite -->
 
   <div class="promo" role="note">
     <svg class="ico" aria-hidden="true"><use href="#i-bolt"/></svg>
@@ -49,7 +49,7 @@
         <a href="#pricing">Pricing</a>
         <a href="#faq">FAQ</a>
       </nav>
-      <button class="cart-btn" type="button" data-open-cart aria-haspopup="dialog" aria-controls="cart">
+      <button class="cart-btn" type="button" data-open-cart aria-haspopup="dialog" aria-controls="cart" aria-expanded="false">
         <svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg>
         <span class="cart-btn-label">Cart</span>
         <span class="cart-count" data-cart-count aria-label="0 packs in cart">0</span>
@@ -57,7 +57,7 @@
     </div>
   </header>
 
-  <div class="flash" data-flash hidden role="status" aria-live="polite"></div>
+  <div class="sr-only" data-cart-live role="status" aria-live="polite" aria-atomic="true"></div>
 
   <main id="main">
     <!-- 1. HERO -->
@@ -68,7 +68,7 @@
           <img src="/images/logo-lockup.webp" width="593" height="374" alt="Marshawn Lynch HELLA GOOD! Energy Gummies" fetchpriority="high">
         </h1>
         <div class="hero-media">
-          <img src="/images/hero-marshawn.webp" width="593" height="389" alt="Marshawn Lynch holding a pack of Strawberry Lemonade HELLA GOOD! Energy Gummies" fetchpriority="high">
+          <img src="/images/hero-marshawn.webp" srcset="/images/hero-marshawn-360.webp 360w, /images/hero-marshawn.webp 593w" sizes="(min-width: 900px) min(593px, 50vw), min(calc(100vw - 32px), 560px)" width="593" height="389" alt="Marshawn Lynch holding a pack of Strawberry Lemonade HELLA GOOD! Energy Gummies" fetchpriority="high">
         </div>
         <div class="hero-copy">
           <p class="hero-kicker"><span>125MG</span> RCF caffeine per gummy</p>
@@ -96,9 +96,9 @@
 
         <div class="flavor-grid" data-flavor-grid>
           <article class="flavor-card" data-flavor="blue-razz" data-color="blue">
-            <div class="flavor-img"><img src="/images/pack-blue-razz.webp" width="261" height="453" loading="lazy" alt="Blue Razz HELLA GOOD! Energy Gummies pack"></div>
+            <div class="flavor-img"><img src="/images/pack-blue-razz.webp" width="261" height="453" loading="lazy" decoding="async" alt="Blue Razz HELLA GOOD! Energy Gummies pack"></div>
             <div class="flavor-body">
-              <h3 class="flavor-name">Blue Razz</h3>
+              <h3 class="flavor-name" id="fn-blue-razz">Blue Razz</h3>
               <p class="flavor-spec"><strong>125mg</strong> RCF caffeine per gummy</p>
               <p class="flavor-price"><span class="price-now" data-card-price>$5.99</span><span class="price-unit">/ pack</span></p>
               <p class="flavor-tierhint">$5.39 at 5+ packs, $4.79 at 15+</p>
@@ -108,15 +108,16 @@
                   <input type="number" inputmode="numeric" min="1" max="100" value="1" aria-label="Blue Razz quantity" data-qty>
                   <button type="button" data-step="1" aria-label="Increase Blue Razz quantity"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg></button>
                 </div>
-                <button type="button" class="btn btn-flavor" data-add>Add to cart</button>
+                <button type="button" class="btn btn-flavor" data-add aria-describedby="fn-blue-razz">Add to cart</button>
               </div>
+              <button type="button" class="add5" data-add5><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span><span class="sr-only">Add </span>5 packs<span class="sr-only"> of Blue Razz:</span></span><span class="add5-save" data-add5-save>Save 10%</span></button>
             </div>
           </article>
 
           <article class="flavor-card" data-flavor="strawberry-lemonade" data-color="red">
-            <div class="flavor-img"><img src="/images/pack-strawberry-lemonade.webp" width="309" height="513" loading="lazy" alt="Strawberry Lemonade HELLA GOOD! Energy Gummies pack"></div>
+            <div class="flavor-img"><img src="/images/pack-strawberry-lemonade.webp" width="309" height="513" loading="lazy" decoding="async" alt="Strawberry Lemonade HELLA GOOD! Energy Gummies pack"></div>
             <div class="flavor-body">
-              <h3 class="flavor-name">Strawberry Lemonade</h3>
+              <h3 class="flavor-name" id="fn-strawberry-lemonade">Strawberry Lemonade</h3>
               <p class="flavor-spec"><strong>125mg</strong> RCF caffeine per gummy</p>
               <p class="flavor-price"><span class="price-now" data-card-price>$5.99</span><span class="price-unit">/ pack</span></p>
               <p class="flavor-tierhint">$5.39 at 5+ packs, $4.79 at 15+</p>
@@ -126,15 +127,16 @@
                   <input type="number" inputmode="numeric" min="1" max="100" value="1" aria-label="Strawberry Lemonade quantity" data-qty>
                   <button type="button" data-step="1" aria-label="Increase Strawberry Lemonade quantity"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg></button>
                 </div>
-                <button type="button" class="btn btn-flavor" data-add>Add to cart</button>
+                <button type="button" class="btn btn-flavor" data-add aria-describedby="fn-strawberry-lemonade">Add to cart</button>
               </div>
+              <button type="button" class="add5" data-add5><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span><span class="sr-only">Add </span>5 packs<span class="sr-only"> of Strawberry Lemonade:</span></span><span class="add5-save" data-add5-save>Save 10%</span></button>
             </div>
           </article>
 
           <article class="flavor-card" data-flavor="orange-pineapple-mango" data-color="orange">
-            <div class="flavor-img"><img src="/images/pack-orange-pineapple-mango.webp" width="264" height="453" loading="lazy" alt="Orange Pineapple Mango HELLA GOOD! Energy Gummies pack"></div>
+            <div class="flavor-img"><img src="/images/pack-orange-pineapple-mango.webp" width="264" height="453" loading="lazy" decoding="async" alt="Orange Pineapple Mango HELLA GOOD! Energy Gummies pack"></div>
             <div class="flavor-body">
-              <h3 class="flavor-name">Orange Pineapple Mango</h3>
+              <h3 class="flavor-name" id="fn-orange-pineapple-mango">Orange Pineapple Mango</h3>
               <p class="flavor-spec"><strong>125mg</strong> RCF caffeine per gummy</p>
               <p class="flavor-price"><span class="price-now" data-card-price>$5.99</span><span class="price-unit">/ pack</span></p>
               <p class="flavor-tierhint">$5.39 at 5+ packs, $4.79 at 15+</p>
@@ -144,8 +146,9 @@
                   <input type="number" inputmode="numeric" min="1" max="100" value="1" aria-label="Orange Pineapple Mango quantity" data-qty>
                   <button type="button" data-step="1" aria-label="Increase Orange Pineapple Mango quantity"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg></button>
                 </div>
-                <button type="button" class="btn btn-flavor" data-add>Add to cart</button>
+                <button type="button" class="btn btn-flavor" data-add aria-describedby="fn-orange-pineapple-mango">Add to cart</button>
               </div>
+              <button type="button" class="add5" data-add5><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span><span class="sr-only">Add </span>5 packs<span class="sr-only"> of Orange Pineapple Mango:</span></span><span class="add5-save" data-add5-save>Save 10%</span></button>
             </div>
           </article>
         </div>
@@ -165,12 +168,12 @@
       <div class="glow glow-red" aria-hidden="true"></div>
       <div class="wrap one-five-grid">
         <div class="one-five-media">
-          <img src="/images/one-pack-five.webp" width="562" height="676" loading="lazy" alt="Strawberry Lemonade pack reading 1 gummy contains 125mg RCF caffeine and 1 pack equals 5 energy drinks">
+          <img src="/images/one-pack-five.webp" srcset="/images/one-pack-five-360.webp 360w, /images/one-pack-five.webp 562w" sizes="(min-width: 900px) 562px, min(calc(100vw - 32px), 470px)" width="562" height="676" loading="lazy" decoding="async" alt="Strawberry Lemonade pack reading 1 gummy contains 125mg RCF caffeine and 1 pack equals 5 energy drinks">
         </div>
         <div class="one-five-copy">
           <h2 id="one-five-title" class="equation">
             <span class="eq-1">1 Pack</span>
-            <span class="eq-eq" aria-hidden="true">=</span>
+            <span class="eq-eq" aria-hidden="true">=</span><span class="sr-only">equals</span>
             <span class="eq-5"><b>5</b><span>Energy<br>Drinks<sup>*</sup></span></span>
           </h2>
           <p class="lede">One gummy contains <strong>125mg RCF caffeine</strong>, from Revibe Raw Coffee Fiber. Same kick in all three flavors.</p>
@@ -184,7 +187,7 @@
     <section class="section raw" id="raw-coffee" aria-labelledby="raw-title">
       <div class="wrap raw-grid">
         <div class="raw-badge">
-          <img src="/images/rcf-badge.webp" width="225" height="195" loading="lazy" alt="Revibe RCF Raw Coffee Fiber badge">
+          <img src="/images/rcf-badge.webp" width="225" height="195" loading="lazy" decoding="async" alt="Revibe RCF Raw Coffee Fiber badge">
         </div>
         <div class="raw-copy">
           <p class="eyebrow">The source of the kick</p>
@@ -203,7 +206,7 @@
     <section class="section community" id="community" aria-labelledby="community-title">
       <div class="wrap community-grid">
         <figure class="community-photo">
-          <img src="/images/community-camp.webp" width="494" height="390" loading="lazy" alt="Marshawn Lynch with young athletes in HELLA GOOD! Energy Camp shirts at a football camp">
+          <img src="/images/community-camp.webp" srcset="/images/community-camp-360.webp 360w, /images/community-camp.webp 494w" sizes="(min-width: 900px) 494px, min(calc(100vw - 32px), 494px)" width="494" height="390" loading="lazy" decoding="async" alt="Marshawn Lynch with young athletes in HELLA GOOD! Energy Camp shirts at a football camp">
         </figure>
         <div class="community-copy">
           <p class="eyebrow">Fueling people, families, communities</p>
@@ -295,35 +298,28 @@
   </main>
 
   <!-- 8. FOOTER -->
-  <footer class="site-footer">
-    <div class="wrap">
-      <div class="footer-top">
-        <a class="brand brand-lg" href="#top" aria-label="Back to top"><span class="brand-hella">HELLA</span><span class="brand-good">GOOD!</span></a>
-        <p class="footer-tag"><span>Real Energy</span> <i></i> <span>Stronger Communities</span> <i></i> <span>A Brighter Tomorrow</span></p>
-        <nav class="footer-nav" aria-label="Footer">
-          <a href="#flavors">Shop</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a><a href="#faq">Shipping &amp; Returns</a>
-        </nav>
-      </div>
-      <div class="footer-legal">
-        <p class="fda">These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.</p>
-        <p>Contains 125mg caffeine per gummy. Not recommended for children, pregnant or nursing women, or people sensitive to caffeine. Do not exceed <mark class="todo">[TODO Nav: daily max]</mark> gummies per day. Consult a physician if you have a medical condition.</p>
-        <p>*1 Pack = 5 Energy Drinks: Energy Drink Comparison based on caffeine content only. Dietary supplement.</p>
-        <p>Privacy Policy &middot; Terms of Sale <mark class="todo">[TODO Nav: add policy pages]</mark></p>
-        <p class="copy">&copy; <span data-year>2026</span> Hella Good Energy. All rights reserved.</p>
-      </div>
-    </div>
-  </footer>
+<!--#include footer -->
+
+  <!-- STICKY MOBILE CART BAR (shown once the cart has items) -->
+  <div class="cartbar" data-cartbar hidden>
+    <button type="button" class="cartbar-btn" data-open-cart aria-haspopup="dialog" aria-controls="cart" aria-expanded="false">
+      <span class="cartbar-count" data-cartbar-count>0</span>
+      <span class="cartbar-label">Cart &middot; <span data-cartbar-total>$0.00</span></span>
+      <span class="cartbar-note" data-cartbar-note></span>
+      <svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg>
+    </button>
+  </div>
 
   <!-- CART DRAWER -->
   <div class="drawer" id="cart" role="dialog" aria-modal="true" aria-labelledby="cart-title" hidden>
     <div class="drawer-scrim" data-close-cart></div>
-    <aside class="drawer-panel" tabindex="-1">
+    <div class="drawer-panel" tabindex="-1">
       <header class="drawer-head">
         <h2 id="cart-title">Your Cart <span data-cart-heading-count></span></h2>
         <button type="button" class="icon-btn" data-close-cart aria-label="Close cart"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
       </header>
 
-      <div class="tierbar" aria-live="polite">
+      <div class="tierbar">
         <p class="tierbar-msg" data-nudge>Mix any 5 packs to save 10%. 15+ packs saves 20%.</p>
         <div class="tierbar-track" aria-hidden="true">
           <div class="tierbar-fill" data-tier-fill></div>
@@ -352,7 +348,7 @@
         <button type="button" class="btn btn-red btn-block btn-xl" data-checkout disabled>Checkout</button>
         <p class="drawer-legal">Secure checkout by Stripe. Prices and discounts are confirmed at checkout. Contains 125mg caffeine per gummy.</p>
       </footer>
-    </aside>
+    </div>
   </div>
 
   <noscript><p class="noscript">Turn on JavaScript to use the cart and checkout.</p></noscript>
