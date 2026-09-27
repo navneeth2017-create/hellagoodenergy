@@ -156,7 +156,7 @@ for (const [route, heading] of [['/privacy', /Privacy <em>Policy<\/em>/], ['/ter
       assert.ok(html.includes('Draft</strong> &mdash; Nav to review before launch'));
       assert.match(html, /<meta name="robots" content="noindex">/, 'drafts stay out of search');
       assert.ok(html.includes(`<link rel="canonical" href="${ORIGIN}${route}">`));
-      assert.ok(html.includes('[Company legal name]'));
+      assert.ok(html.includes('RCFML Gummies LLC'));
       assert.ok(html.includes('[Street address, City, State ZIP]'));
       assert.ok(html.includes('mailto:admin@hellagoodenergy.com'));
       assert.ok(!html.includes('[Support email]') && !html.includes('[Support phone]'));
