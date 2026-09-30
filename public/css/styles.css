@@ -835,12 +835,14 @@ html.has-cartbar body { padding-bottom: 80px; }
   .flavor-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .flavor-card { grid-template-columns: 1fr; padding: 22px 22px 24px; align-content: start; text-align: center; }
   .flavor-card { background: radial-gradient(90% 38% at 50% 100%, color-mix(in srgb, var(--c) 24%, transparent), transparent 72%), #040405; }
-  .flavor-img { height: 380px; margin-bottom: 10px; }
+  .flavor-img { height: 360px; margin-bottom: 4px; }
   .flavor-img img { transition: transform 0.35s var(--ease); }
   .flavor-card:hover .flavor-img img { transform: translateY(-6px) rotate(-1.5deg); }
   .flavor-name { font-size: 34px; min-height: 2em; display: flex; align-items: flex-end; justify-content: center; }
   .flavor-price { justify-content: center; }
-  .buy-row { justify-content: center; flex-wrap: nowrap; }
+  /* quantity centred on its own row, Add to cart full width under it — everything lines up under the pack */
+  .buy-row { flex-direction: column; align-items: center; flex-wrap: nowrap; gap: 10px; }
+  .buy-row .btn-flavor { width: 100%; flex: 0 0 auto; }
 
   .one-five-grid { grid-template-columns: 1.05fr 1fr; gap: 40px; }
   .one-five-media img { margin: 0; width: 100%; max-width: 562px; }
