@@ -1,7 +1,16 @@
 """Build web images from the brand's 4 source pages (source-pages/ is the brief, not shipped).
 
 Usage: python3 scripts/build_images.py
-Needs Pillow. Crops are exported at native size, or at most 1.5x for the small pack shots.
+Needs Pillow.
+
+Sources
+  page1.png  593x765 screenshot: logo lockup + hero (Marshawn holding the Strawberry Lemonade pack).
+  page2.png  three packs ("No Discrimination"), page3.png tilted pack ("1 PACK = 5 ENERGY DRINKS"),
+  page4.png  camp photo + Revibe RCF badge: PNG exports of the brand's Canva deck at 2448x3168
+             (3x its 816x1056 page size). Crop boxes below are in those pixels.
+
+Pack shots, the 1 = 5 pack, the camp photo and the badge are downscaled to about 2x the largest
+size the site shows them at, so they stay sharp on retina screens.
 """
 from collections import deque
 from pathlib import Path
@@ -37,12 +46,9 @@ def feather(img, left=0, right=0, top=0, bottom=0):
     return img
 
 
-def upscale(img, factor):
-    if factor == 1:
-        return img
-    w, h = img.size
-    big = img.resize((round(w * factor), round(h * factor)), Image.LANCZOS)
-    return big.filter(ImageFilter.UnsharpMask(radius=1.2, percent=60, threshold=2))
+def crop_to(img, box, size):
+    """Crop box out of a high-res source page and downscale it to the exact output size."""
+    return img.crop(box).resize(size, Image.LANCZOS)
 
 
 def save(img, name, quality=86, lossless=False):
@@ -57,37 +63,36 @@ save(feather(p1.crop((0, 0, 593, 374)), left=48, right=48), "logo-lockup.webp", 
 hero = p1.crop((0, 376, 593, 765))
 save(feather(hero, left=56, right=56, top=40, bottom=70), "hero-marshawn.webp", quality=88)
 
-# ---- page 2: the three packs
-p2 = Image.open(SRC / "page2.webp").convert("RGB")
+# ---- page 2: the three packs. Shown 380px tall at most, so built 760px tall.
+p2 = Image.open(SRC / "page2.png").convert("RGB")
 packs = {
-    "pack-blue-razz.webp": ((26, 410, 200, 712), dict(left=14, right=14, top=10, bottom=26)),
-    "pack-strawberry-lemonade.webp": ((188, 390, 394, 732), dict(left=16, right=16, top=10, bottom=26)),
-    "pack-orange-pineapple-mango.webp": ((386, 410, 562, 712), dict(left=14, right=14, top=10, bottom=26)),
+    "pack-blue-razz.webp": ((135, 1743, 845, 2975), (438, 760), dict(left=35, right=35, top=25, bottom=65)),
+    "pack-strawberry-lemonade.webp": ((796, 1661, 1637, 3057), (458, 760), dict(left=36, right=36, top=22, bottom=58)),
+    "pack-orange-pineapple-mango.webp": ((1604, 1743, 2323, 2975), (443, 760), dict(left=35, right=35, top=25, bottom=65)),
 }
-for name, (box, edges) in packs.items():
-    img = upscale(p2.crop(box), 1.5)
-    save(feather(img, **{k: round(v * 1.5) for k, v in edges.items()}), name, quality=88)
+for name, (box, size, edges) in packs.items():
+    save(feather(crop_to(p2, box, size), **edges), name, quality=88)
 
-# ---- page 3: tilted pack, "1 PACK = 5 ENERGY DRINKS" (stop above the viewer toolbar / page caption)
-p3 = Image.open(SRC / "page3.webp").convert("RGB")
-one = feather(p3.crop((0, 0, 562, 676)), bottom=110, left=10, right=10, top=10)
-# Fade out the partial "1 PACK = 5" side graphic (it is cut off by the page edge), keep the pack.
+# ---- page 3: tilted pack, "1 PACK = 5 ENERGY DRINKS". Shown 562px wide at most, so built 1124px wide.
+p3 = Image.open(SRC / "page3.png").convert("RGB")
+one = feather(crop_to(p3, (37, 0, 2321, 2748), (1124, 1352)), bottom=220, left=20, right=20, top=20)
+# Fade out the partial "1 PACK = 5" side graphic (it is cut off by the crop edge), keep the pack.
 a = one.getchannel("A")
 ap = a.load()
 for y in range(one.height):
     for x in range(one.width):
-        dx, dy = x - 392, y - 540
-        if dx > -40 and dy > -40:
-            k = max(0.0, min(1.0, min(dx + 40, dy + 40) / 60))
+        dx, dy = x - 784, y - 1070
+        if dx > -80 and dy > -80:
+            k = max(0.0, min(1.0, min(dx + 80, dy + 80) / 120))
             ap[x, y] = int(ap[x, y] * (1 - k))
 one.putalpha(a)
 save(one, "one-pack-five.webp", quality=86)
 
 # ---- page 4: camp photo (below the headline, clear of the side copy) + Revibe RCF badge
-p4 = Image.open(SRC / "page4.webp").convert("RGB")
-save(p4.crop((104, 138, 598, 528)), "community-camp.webp", quality=86)
+p4 = Image.open(SRC / "page4.png").convert("RGB")
+save(crop_to(p4, (429, 576, 2448, 2170), (988, 780)), "community-camp.webp", quality=86)  # shown 494px wide at most
 
-badge = p4.crop((443, 530, 593, 660)).convert("RGBA")
+badge = p4.crop((1819, 2179, 2432, 2710)).convert("RGBA")
 w, h = badge.size
 rgb = badge.load()
 outside = [[False] * w for _ in range(h)]
@@ -124,7 +129,7 @@ mask = Image.new("L", (w, h), 0)
 mp = mask.load()
 for x, y in best:
     mp[x, y] = 255
-mask = mask.filter(ImageFilter.GaussianBlur(0.6))
+mask = mask.filter(ImageFilter.GaussianBlur(1.2))
 badge.putalpha(mask)
-badge = feather(upscale(badge, 1.5), bottom=36)
+badge = feather(badge.resize((450, 390), Image.LANCZOS), bottom=72)  # shown 225px wide at most
 save(badge, "rcf-badge.webp", quality=90)
