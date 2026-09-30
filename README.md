@@ -106,10 +106,11 @@ Connect the GitHub repo to a Railway service, add the variables above, and deplo
 
 `public/images/` holds crops of the brand's own marketing pages, built by `npm run build:images`
 (Python + Pillow) from `source-pages/`. Those pages are the brief only: they are git-ignored, never served, and
-must be placed in `source-pages/` locally to rebuild. `page2.png`, `page3.png` and `page4.png` are PNG exports of the
-brand's Canva deck at 2448x3168 (3x the page size); `page1.png` is a 593x765 screenshot. The pack shots, the
-1 pack = 5 pack, the camp photo and the RCF badge are built at about 2x the largest size the site shows them at, so
-they stay sharp on retina screens; the logo and hero are cropped at native size.
+must be placed in `source-pages/` locally to rebuild. They are PNG exports of pages of the brand's "GUMMIES" Canva
+deck at 2448x3168 (3x the page size), named after the deck page (`page01.png`, `page05.png`, `page55.png`,
+`page67.png`-`page69.png`; the list is at the top of `scripts/build_images.py`). The three pack shots are cut out of
+the white-background pack pages onto transparency. Every image is built at about 2x the largest size the site shows
+it at, so it stays sharp on retina screens.
 
 `npm run build:share` (Python + Pillow) builds from those crops, without `source-pages/`: the 1200x630 share image
 `public/images/og-image.jpg` (logo, the three packs, black and lightning), `public/apple-touch-icon.png`,
