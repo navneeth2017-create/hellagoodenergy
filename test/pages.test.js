@@ -108,7 +108,7 @@ test('home page: SEO, sharing and icon tags, versioned assets', async () => {
     assert.match(html, /<script src="\/js\/app\.js\?v=[0-9a-f]{10}" defer><\/script>/);
     assert.doesNotMatch(html, /<!--#include|\{\{[A-Z]+\}\}/, 'no template syntax leaks');
     assert.doesNotMatch(html, /name="robots"/, 'home is indexable');
-    assert.ok(html.includes('[TODO Nav: daily max]'), 'daily max still flagged');
+    assert.ok(html.includes('Do not exceed 2 gummies per day') && !html.includes('TODO Nav: daily max'), 'daily max set to 2 (Nav)');
     for (const gone of ['processing time', 'returns and refunds policy', 'support email or phone']) assert.ok(!html.includes(gone), gone);
     assert.ok(html.includes('arrives within 7 days') && html.includes('unopened products within 30 days') && html.includes('admin@hellagoodenergy.com'));
     assert.ok(html.includes('href="/privacy"') && html.includes('href="/terms"'), 'footer links to the policies');
