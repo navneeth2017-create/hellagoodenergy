@@ -69,9 +69,11 @@ function buildCheckoutSession(items, baseUrl) {
       if (httpsBase) product.images = [baseUrl + flavor.image];
       return {
         quantity: l.qty,
-        price_data: { currency: 'usd', unit_amount: l.unitCents, product_data: product },
+        price_data: { currency: 'usd', unit_amount: l.unitCents, tax_behavior: 'exclusive', product_data: product },
       };
     }),
+    // Sales tax (Nav, 2026-10-07): Stripe Tax works it out from the shipping address and adds it on top.
+    automatic_tax: { enabled: true },
     shipping_address_collection: { allowed_countries: ['US'] },
     shipping_options: [
       {
@@ -79,6 +81,7 @@ function buildCheckoutSession(items, baseUrl) {
           type: 'fixed_amount',
           display_name: 'Flat-rate shipping',
           fixed_amount: { amount: pricing.SHIPPING_CENTS, currency: 'usd' },
+          tax_behavior: 'exclusive',
         },
       },
     ],
