@@ -418,7 +418,7 @@
   /* ---------- entrance motion (skipped entirely when the visitor prefers reduced motion) ---------- */
   // Blocks below the fold fade up the first time they scroll into view. Anything already on screen at load
   // is left alone, so nothing visible ever flashes, and without JS everything simply shows.
-  const REVEAL = '.nd-head, .flavor-card, .mixnote, .one-five-media, .one-five-copy, .raw-badge, .raw-copy, .facts li, .community-photo, .community-copy, .pricing .eyebrow, .pricing .h2, .tier, .tier-foot, .faq .h2, .faq-list';
+  const REVEAL = '.nd-head, .flavor-card, .mixnote, .marshawn-media, .marshawn-copy, .one-five-media, .one-five-copy, .raw-badge, .raw-copy, .facts li, .community-photo, .community-copy, .pricing .eyebrow, .pricing .h2, .tier, .tier-foot, .faq .h2, .faq-list';
   if ('IntersectionObserver' in window && window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
     const io = new IntersectionObserver(
       (entries) => {

@@ -241,12 +241,37 @@ mark.todo {
 .hero-grid {
   position: relative;
   display: grid;
-  grid-template-areas: "logo" "media" "copy";
+  grid-template-areas: "logo" "packs" "copy";
   justify-items: center;
 }
 .hero-logo { grid-area: logo; margin: 0; width: min(100%, 520px); }
 .hero-logo img { width: 100%; mix-blend-mode: lighten; }
-.hero-media { grid-area: media; width: min(100%, 560px); margin-top: -6px; position: relative; }
+
+/* The three packs, fanned like the share image: Strawberry Lemonade in front, the other two tilted behind it,
+   each over a glow in its own color. The pack art has 6% clear space above and below. */
+.hero-packs { grid-area: packs; position: relative; width: min(100%, 440px); aspect-ratio: 1.2; margin: -14px 0 8px; }
+.pack { position: absolute; display: block; transform-origin: 50% 90%; }
+.pack img { height: 100%; width: auto; max-width: none; filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.65)); }
+.pack-red { z-index: 2; left: 50%; top: 0; height: 100%; transform: translateX(-50%); }
+.pack-blue { z-index: 1; left: 26%; top: 8%; height: 86%; transform: translateX(-50%) rotate(-8deg); }
+.pack-orange { z-index: 1; left: 74%; top: 8%; height: 86%; transform: translateX(-50%) rotate(8deg); }
+.pack-aura {
+  position: absolute;
+  inset: -12% -22%;
+  pointer-events: none;
+  opacity: 0.8;
+  background:
+    radial-gradient(30% 42% at 18% 58%, rgba(47, 107, 255, 0.5), transparent 70%),
+    radial-gradient(36% 48% at 50% 46%, rgba(232, 20, 28, 0.55), transparent 70%),
+    radial-gradient(30% 42% at 82% 58%, rgba(255, 122, 18, 0.45), transparent 70%);
+}
+
+/* Lightning (drawn and struck by js/bolts.js): a blurred stroke in the bolt's color under a white core. */
+.sky { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.bolt { opacity: 0; }
+.bolt-glow { fill: none; stroke: var(--bolt); stroke-width: 12; stroke-linecap: round; stroke-linejoin: round; filter: url(#bolt-blur); }
+.bolt-halo { fill: none; stroke: var(--bolt); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.bolt-core { fill: none; stroke: #fff; stroke-linecap: round; stroke-linejoin: round; }
 .hero-copy { grid-area: copy; position: relative; z-index: 2; text-align: center; margin-top: -10px; }
 .hero-kicker {
   margin: 0 0 6px;
@@ -440,7 +465,12 @@ mark.todo {
 .legal-box p:last-child { margin: 0; }
 .legal-box strong { color: #fff; }
 
-/* ---------- 3. 1 pack = 5 ---------- */
+/* ---------- 3. Marshawn Lynch ---------- */
+.marshawn { overflow: hidden; background: #000; }
+.marshawn-grid { position: relative; display: grid; gap: 20px; align-items: center; }
+.marshawn-media img { width: min(100%, 560px); margin: 0 auto; mix-blend-mode: lighten; }
+
+/* ---------- 4. 1 pack = 5 ---------- */
 .one-five { overflow: hidden; background: #050000; }
 .glow { position: absolute; inset: 0; pointer-events: none; }
 .glow-red { background: radial-gradient(70% 60% at 30% 50%, rgba(232, 20, 28, 0.28), transparent 70%); }
@@ -480,7 +510,7 @@ mark.todo {
 .eq-5 sup { font-size: 0.45em; color: var(--red); vertical-align: top; position: relative; top: 0.1em; }
 .footnote { margin: 0 0 22px; font-size: 13px; color: var(--muted); }
 
-/* ---------- 4. Raw coffee ---------- */
+/* ---------- 5. Raw coffee ---------- */
 .raw { background: linear-gradient(180deg, #000, #0b0908); }
 .raw-grid { display: grid; gap: 24px; align-items: center; }
 .raw-badge { justify-self: center; position: relative; }
@@ -506,7 +536,7 @@ mark.todo {
 .facts b small { font-size: 0.5em; color: var(--red); margin-left: 2px; }
 .facts span { color: var(--muted); font-size: 15px; line-height: 1.35; }
 
-/* ---------- 5. Community ---------- */
+/* ---------- 6. Community ---------- */
 .community { background: #000; overflow: hidden; padding-bottom: 0; }
 .community-grid { display: grid; gap: 28px; align-items: center; }
 .community-photo {
@@ -560,7 +590,7 @@ mark.todo {
 .tagline { flex-direction: column; gap: 10px; }
 .tagline i { width: 28px; height: 3px; background: var(--red); transform: skewX(-14deg); }
 
-/* ---------- 6. Pricing ---------- */
+/* ---------- 7. Pricing ---------- */
 .pricing { background: radial-gradient(80% 60% at 50% 100%, #1a0406, #000 70%); }
 .tiers { display: grid; gap: 14px; margin: 30px 0 22px; }
 .tier {
@@ -595,7 +625,7 @@ mark.todo {
 .tier-foot { text-align: center; color: var(--muted); margin: 0 auto 26px; max-width: 34em; }
 .tier-foot strong { color: #fff; }
 
-/* ---------- 7. FAQ ---------- */
+/* ---------- 8. FAQ ---------- */
 .faq { background: #000; }
 .faq-wrap { max-width: 860px; }
 .faq-list { border-top: 1px solid var(--line-2); }
@@ -628,7 +658,7 @@ mark.todo {
 .faq details[open] summary::after { transform: rotate(45deg); background: var(--red); border-color: var(--red); }
 .faq details p { margin: 0 0 20px; color: #cfcfd6; max-width: 42em; }
 
-/* ---------- 8. Footer ---------- */
+/* ---------- 9. Footer ---------- */
 .site-footer { background: #050506; border-top: 1px solid var(--line); padding: 44px 0 36px; }
 .footer-top { display: grid; gap: 14px; justify-items: start; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
 .brand-lg { font-size: 42px; }
@@ -714,9 +744,10 @@ html.has-cartbar body { padding-bottom: 80px; }
 .tierbar-track { position: relative; height: 8px; border-radius: 99px; background: #26262c; margin: 0 0 22px; }
 .tierbar-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 99px; background: linear-gradient(90deg, #b70c12, var(--red-hot)); box-shadow: 0 0 14px rgba(255, 59, 48, 0.6); transition: width 0.35s var(--ease); }
 .tierbar-mark { position: absolute; top: 14px; transform: translateX(-50%); font: 700 11px/1 var(--body); color: var(--dim); white-space: nowrap; }
-.tierbar-mark i { position: absolute; left: 50%; top: -18px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: #26262c; border: 2px solid #0b0b0e; }
+/* Checkpoint dots, centred on the 8px track (the label sits 14px below the track's top, the dot's centre 4px below it). */
+.tierbar-mark i { position: absolute; left: 50%; top: -17px; box-sizing: border-box; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: #0b0b0e; border: 2px solid #4a4a54; transition: background 0.25s, border-color 0.25s, box-shadow 0.25s; }
 .tierbar-mark.hit { color: #fff; }
-.tierbar-mark.hit i { background: var(--red-hot); }
+.tierbar-mark.hit i { background: #fff; border: 3px solid var(--red-hot); box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.22), 0 0 12px rgba(255, 59, 48, 0.85); }
 .tierbar-mark.m5 { left: 33.333%; }
 .tierbar-mark.m15 { left: auto; right: 0; transform: none; }
 .tierbar-mark.m15 i { left: auto; right: 0; margin: 0; }
@@ -816,11 +847,13 @@ html.has-cartbar body { padding-bottom: 80px; }
   .bolts {
     background:
       radial-gradient(64% 85% at 24% 40%, rgba(232, 20, 28, 0.26), rgba(232, 20, 28, 0.1) 45%, transparent 80%),
-      radial-gradient(30% 30% at 0% 100%, rgba(47, 107, 255, 0.16), transparent 70%);
+      radial-gradient(40% 60% at 74% 45%, rgba(232, 20, 28, 0.16), transparent 70%),
+      radial-gradient(30% 30% at 0% 100%, rgba(47, 107, 255, 0.16), transparent 70%),
+      radial-gradient(30% 30% at 100% 100%, rgba(255, 122, 18, 0.14), transparent 70%);
   }
   .hero-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 593px);
-    grid-template-areas: "logo media" "copy media";
+    grid-template-columns: minmax(0, 1fr) minmax(0, 600px);
+    grid-template-areas: "logo packs" "copy packs";
     align-items: end;
     column-gap: 40px;
   }
@@ -829,8 +862,10 @@ html.has-cartbar body { padding-bottom: 80px; }
   .hero-sub { margin-left: 0; }
   .hero-ctas, .flavor-pills { justify-content: flex-start; }
   .hero-ctas .btn { flex: 0 0 auto; }
-  .hero-media { width: 100%; max-width: 593px; justify-self: end; align-self: center; margin: 0; }
-  .hero-media img { mix-blend-mode: lighten; }
+  .hero-packs { width: 100%; max-width: 600px; aspect-ratio: 1.12; justify-self: end; align-self: center; margin: 0; }
+
+  .marshawn-grid { grid-template-columns: 1.1fr 1fr; gap: 56px; }
+  .marshawn-media img { width: 100%; max-width: 593px; margin: 0; }
 
   .flavor-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .flavor-card { grid-template-columns: 1fr; padding: 22px 22px 24px; align-content: start; text-align: center; }
@@ -877,8 +912,15 @@ html.has-cartbar body { padding-bottom: 80px; }
   .drawer.opening .cart-line:nth-child(2), .drawer.opening .quick-add button:nth-child(2) { animation-delay: 60ms; }
   .drawer.opening .cart-line:nth-child(3), .drawer.opening .quick-add button:nth-child(3) { animation-delay: 120ms; }
   .drawer-scrim { transition-duration: 0.3s; }
+  /* Hero packs drift a few pixels, out of step; the glow behind them swells with each lightning strike. */
+  .pack-red { animation: pack-float 6s ease-in-out infinite; }
+  .pack-blue { animation: pack-float 6.8s ease-in-out -2.3s infinite; }
+  .pack-orange { animation: pack-float 7.4s ease-in-out -4.1s infinite; }
+  .hero.flash .pack-aura { animation: aura-flash 0.7s ease-out; }
 }
 @keyframes line-in { from { opacity: 0; transform: translate3d(18px, 0, 0); } }
+@keyframes pack-float { 50% { translate: 0 -8px; } }
+@keyframes aura-flash { 12% { opacity: 1; } }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .flavor-card { transition: transform 0.3s var(--ease), border-color 0.3s, box-shadow 0.3s var(--ease); }
   .flavor-card:hover {

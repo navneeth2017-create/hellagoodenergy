@@ -68,7 +68,7 @@ test('every route has a deliberate Cache-Control', async () => {
   await withServer(createApp({ stripe: null, publicUrl: ORIGIN, logger: quiet }), async (base) => {
     const html = await (await get(base, '/')).text();
     const versionedCss = html.match(/\/css\/styles\.css\?v=[0-9a-f]{10}/)[0];
-    const versionedAvif = html.match(/\/images\/hero-marshawn\.avif\?v=[0-9a-f]{10}/)[0];
+    const versionedAvif = html.match(/\/images\/pack-strawberry-lemonade\.avif\?v=[0-9a-f]{10}/)[0];
     const YEAR = 'public, max-age=31536000, immutable';
     const cases = [
       ['GET', '/', 200, 'no-cache'],

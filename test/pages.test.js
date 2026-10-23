@@ -102,10 +102,12 @@ test('home page: SEO, sharing and icon tags, versioned assets', async () => {
     assert.match(html, /<meta name="twitter:card" content="summary_large_image">/);
     assert.match(html, /<link rel="icon" href="\/favicon\.svg\?v=[0-9a-f]{10}" type="image\/svg\+xml">/);
     assert.match(html, /<link rel="apple-touch-icon" href="\/apple-touch-icon\.png\?v=[0-9a-f]{10}">/);
-    assert.match(html, /<link rel="preload" as="image" type="image\/avif" href="\/images\/hero-marshawn\.avif\?v=[0-9a-f]{10}"/);
+    assert.match(html, /<link rel="preload" as="image" type="image\/avif" href="\/images\/pack-strawberry-lemonade\.avif\?v=[0-9a-f]{10}"/);
     assert.match(html, /<link rel="preload" href="\/fonts\/barlow-condensed-v13-900-italic\.woff2" as="font" type="font\/woff2" crossorigin>/);
     assert.match(html, /<link rel="stylesheet" href="\/css\/styles\.css\?v=[0-9a-f]{10}">/);
     assert.match(html, /<script src="\/js\/app\.js\?v=[0-9a-f]{10}" defer><\/script>/);
+    assert.match(html, /<script src="\/js\/bolts\.js\?v=[0-9a-f]{10}" defer><\/script>/);
+    assert.match(html, /class="hero-packs"[\s\S]*pack-strawberry-lemonade[\s\S]*id="marshawn"[\s\S]*hero-marshawn\.webp/, 'packs up top, Marshawn further down');
     assert.doesNotMatch(html, /<!--#include|\{\{[A-Z]+\}\}/, 'no template syntax leaks');
     assert.doesNotMatch(html, /name="robots"/, 'home is indexable');
     assert.ok(html.includes('Do not exceed 2 gummies per day') && !html.includes('TODO Nav: daily max'), 'daily max set to 2 (Nav)');
