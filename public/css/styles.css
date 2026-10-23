@@ -231,7 +231,7 @@ mark.todo {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(70% 26% at 50% 16%, rgba(232, 20, 28, 0.26), transparent 70%),
+    radial-gradient(120% 42% at 50% 18%, rgba(232, 20, 28, 0.28), rgba(232, 20, 28, 0.1) 45%, transparent 80%),
     radial-gradient(50% 20% at 0% 100%, rgba(47, 107, 255, 0.14), transparent 70%),
     radial-gradient(50% 20% at 100% 100%, rgba(255, 122, 18, 0.12), transparent 70%);
 }
@@ -815,7 +815,7 @@ html.has-cartbar body { padding-bottom: 80px; }
   .hero { padding: 28px 0 64px; }
   .bolts {
     background:
-      radial-gradient(38% 50% at 24% 38%, rgba(232, 20, 28, 0.24), transparent 70%),
+      radial-gradient(64% 85% at 24% 40%, rgba(232, 20, 28, 0.26), rgba(232, 20, 28, 0.1) 45%, transparent 80%),
       radial-gradient(30% 30% at 0% 100%, rgba(47, 107, 255, 0.16), transparent 70%);
   }
   .hero-grid {

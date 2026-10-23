@@ -1,12 +1,13 @@
 """Build web images from the brand's Canva deck (source-pages/ is the brief, not shipped).
 
-Usage: python3 scripts/build_images.py
-Needs Pillow.
+Usage: python3 scripts/build_images.py [logo] [hero] [packs] [one] [camp] [badge]   (no names: all of them)
+Needs Pillow and numpy.
 
 Sources: PNG exports of pages of the brand's "GUMMIES" Canva deck at 2448x3168 (3x its 816x1056 page
-size), named after the deck page. Crop boxes below are in those pixels.
+size), named after the deck page at the time the crop was made. Crop boxes below are in those pixels.
   page01.png  logo lockup + hero (Marshawn in the hoodie holding the Strawberry Lemonade pack)
-  page05.png  camp photo + Revibe RCF badge
+  page05.png  camp photo (the deck has been reordered since: that page is now page 32)
+  page32.png  the same camp page, for the whole Revibe RCF shield badge
   page55.png  tilted Strawberry Lemonade pack on red lightning ("1 pack = 5 energy drinks" section)
   page67.png, page68.png, page69.png  Strawberry Lemonade, Blue Razz and Orange Pineapple Mango packs,
               front-on on white (current "125mg per gummy" pack art); cut out onto transparency here
@@ -14,9 +15,11 @@ size), named after the deck page. Crop boxes below are in those pixels.
 Everything is downscaled to about 2x the largest size the site shows it at, so it stays sharp on
 retina screens.
 """
+import sys
 from collections import deque
 from pathlib import Path
 
+import numpy as np
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -100,72 +103,135 @@ def on_canvas(pack, size, pack_height):
     return canvas
 
 
-# ---- page 1: logo lockup + hero. Hero shown 593px wide at most, logo 511px, so both built 1186px wide.
-p1 = Image.open(SRC / "page01.png").convert("RGB")
-logo = crop_to(p1, (20, 41, 2434, 1563), (1186, 748))
-save(feather(logo, left=96, right=96), "logo-lockup.webp", quality=90)  # shown with mix-blend-mode: lighten
-hero = crop_to(p1, (20, 1571, 2434, 3155), (1186, 778))
-save(feather(hero, left=112, right=112, top=80, bottom=140), "hero-marshawn.webp", quality=88)
+def black_out_below(img, top, keep):
+    """Paint everything from row `top` down black, except inside the `keep` boxes (soft 1px edge).
+
+    The logo crop picks up the tips of the hero's lightning and the top of Marshawn's hood under the
+    lettering; on the site they would show as stray sparks cut off by the image's bottom edge.
+    """
+    w, h = img.size
+    mask = Image.new("L", (w, h), 0)
+    d = ImageDraw.Draw(mask)
+    d.rectangle((0, 0, w, top - 1), fill=255)
+    for box in keep:
+        d.rectangle(box, fill=255)
+    mask = mask.filter(ImageFilter.GaussianBlur(0.8))
+    return Image.composite(img, Image.new(img.mode, img.size, 0), mask)
+
+
+def shield_cutout(img, box, rim):
+    """Cut the Revibe RCF shield (black field, white rim) out of a photo onto transparency.
+
+    Its black field (the band between the rim and the ring) is the largest dark region inside the crop that does
+    not touch the crop's edge; filling its holes gives everything inside the rim. That is grown outward by the rim
+    width with a Euclidean distance, so the tip keeps its point, and the last pixel is anti-aliased.
+    """
+    crop = img.crop(box).convert("RGB")
+    rgb = np.asarray(crop)
+    h, w = rgb.shape[:2]
+    dark = rgb.max(axis=2) < 80
+    label = np.zeros((h, w), np.int32)
+    best, best_n, n = 0, 0, 0
+    for sy, sx in zip(*np.nonzero(dark)):
+        if label[sy, sx]:
+            continue
+        n += 1
+        q, size, edge = deque([(sy, sx)]), 0, False
+        label[sy, sx] = n
+        while q:
+            y, x = q.popleft()
+            size += 1
+            edge |= y in (0, h - 1) or x in (0, w - 1)
+            for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
+                if 0 <= ny < h and 0 <= nx < w and dark[ny, nx] and not label[ny, nx]:
+                    label[ny, nx] = n
+                    q.append((ny, nx))
+        if not edge and size > best_n:
+            best, best_n = n, size
+    field = label == best
+    outside = np.zeros((h, w), bool)
+    q = deque([(y, x) for y in range(h) for x in (0, w - 1)] + [(y, x) for x in range(w) for y in (0, h - 1)])
+    while q:
+        y, x = q.popleft()
+        if not (0 <= y < h and 0 <= x < w) or outside[y, x] or field[y, x]:
+            continue
+        outside[y, x] = True
+        q.extend(((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)))
+    inner = ~outside
+    reach = 2 * int(rim + 3) + 1
+    near = np.asarray(Image.fromarray(inner.astype(np.uint8) * 255).filter(ImageFilter.MaxFilter(reach))) > 0
+    edge = inner & ~(np.roll(inner, 1, 0) & np.roll(inner, -1, 0) & np.roll(inner, 1, 1) & np.roll(inner, -1, 1))
+    by, bx = np.nonzero(edge)
+    cy, cx = np.nonzero(near & ~inner)
+    dist = np.empty(len(cy))
+    for i in range(0, len(cy), 4000):
+        d2 = (cy[i:i + 4000, None] - by[None, :]) ** 2 + (cx[i:i + 4000, None] - bx[None, :]) ** 2
+        dist[i:i + 4000] = np.sqrt(d2.min(axis=1))
+    alpha = inner.astype(np.float64)
+    alpha[cy, cx] = np.clip(rim + 0.5 - dist, 0, 1)
+    mask = Image.fromarray((alpha * 255).round().astype(np.uint8))
+    out = crop.convert("RGBA")
+    out.putalpha(mask)
+    return out.crop(mask.getbbox())
+
+
+# ---- page 1: logo lockup + hero. Hero shown 593px wide at most, logo 560px, so both built 1186px wide.
+def build_logo():
+    p1 = Image.open(SRC / "page01.png").convert("RGB")
+    logo = crop_to(p1, (20, 41, 2434, 1563), (1186, 748))
+    # Below the bottom of GOOD! only ENERGY, its TM and GUMMIES stay (boxes measured on this crop).
+    logo = black_out_below(logo, 540, [(282, 527, 908, 698), (896, 536, 935, 574), (705, 699, 912, 731),
+                                       (710, 732, 912, 734)])
+    save(feather(logo, left=96, right=96), "logo-lockup.webp", quality=90)  # shown with mix-blend-mode: lighten
+
+
+def build_hero():
+    p1 = Image.open(SRC / "page01.png").convert("RGB")
+    hero = crop_to(p1, (20, 1571, 2434, 3155), (1186, 778))
+    save(feather(hero, left=112, right=112, top=80, bottom=140), "hero-marshawn.webp", quality=88)
+
 
 # ---- pages 67-69: the three packs, cut out. Shown 380px tall at most, so built 760px tall, keeping each
 # slot's aspect ratio; the pack is the same height in all three.
-packs = {
-    "pack-strawberry-lemonade.webp": ("page67.png", (540, 455, 2012, 2727), (458, 760)),
-    "pack-blue-razz.webp": ("page68.png", (566, 367, 2028, 2619), (438, 760)),
-    "pack-orange-pineapple-mango.webp": ("page69.png", (1238, 1508, 2290, 3115), (443, 760)),
-}
-for name, (src, box, size) in packs.items():
-    pack = cutout(Image.open(SRC / src), box)
-    save(on_canvas(pack, size, 664), name, quality=88)
+def build_packs():
+    packs = {
+        "pack-strawberry-lemonade.webp": ("page67.png", (540, 455, 2012, 2727), (458, 760)),
+        "pack-blue-razz.webp": ("page68.png", (566, 367, 2028, 2619), (438, 760)),
+        "pack-orange-pineapple-mango.webp": ("page69.png", (1238, 1508, 2290, 3115), (443, 760)),
+    }
+    for name, (src, box, size) in packs.items():
+        pack = cutout(Image.open(SRC / src), box)
+        save(on_canvas(pack, size, 664), name, quality=88)
+
 
 # ---- page 55: tilted pack on red lightning ("1 PACK = 5 ENERGY DRINKS"). Shown 562px wide at most, so
 # built 1124px wide.
-p55 = Image.open(SRC / "page55.png").convert("RGB")
-one = feather(crop_to(p55, (0, 0, 2448, 2945), (1124, 1352)), bottom=220, left=20, right=20, top=20)
-save(one, "one-pack-five.webp", quality=86)
+def build_one():
+    p55 = Image.open(SRC / "page55.png").convert("RGB")
+    one = feather(crop_to(p55, (0, 0, 2448, 2945), (1124, 1352)), bottom=220, left=20, right=20, top=20)
+    save(one, "one-pack-five.webp", quality=86)
 
-# ---- page 5: camp photo (below the headline, clear of the side copy) + Revibe RCF badge
-p4 = Image.open(SRC / "page05.png").convert("RGB")
-save(crop_to(p4, (429, 576, 2448, 2170), (988, 780)), "community-camp.webp", quality=86)  # shown 494px wide at most
 
-badge = p4.crop((1819, 2179, 2432, 2710)).convert("RGBA")
-w, h = badge.size
-rgb = badge.load()
-outside = [[False] * w for _ in range(h)]
-q = deque()
-for x in range(w):
-    q.append((x, 0))
-for y in range(h):
-    q.extend([(0, y), (w - 1, y)])
-while q:
-    x, y = q.popleft()
-    if not (0 <= x < w and 0 <= y < h) or outside[y][x] or min(rgb[x, y][:3]) > 150:
-        continue
-    outside[y][x] = True
-    q.extend([(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)])
-# keep only the largest connected region that is not background (drops stray bits at the edges)
-seen = [[False] * w for _ in range(h)]
-best = []
-for sy in range(h):
-    for sx in range(w):
-        if outside[sy][sx] or seen[sy][sx]:
-            continue
-        comp, q = [], deque([(sx, sy)])
-        seen[sy][sx] = True
-        while q:
-            x, y = q.popleft()
-            comp.append((x, y))
-            for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
-                if 0 <= nx < w and 0 <= ny < h and not outside[ny][nx] and not seen[ny][nx]:
-                    seen[ny][nx] = True
-                    q.append((nx, ny))
-        if len(comp) > len(best):
-            best = comp
-mask = Image.new("L", (w, h), 0)
-mp = mask.load()
-for x, y in best:
-    mp[x, y] = 255
-mask = mask.filter(ImageFilter.GaussianBlur(1.2))
-badge.putalpha(mask)
-badge = feather(badge.resize((450, 390), Image.LANCZOS), bottom=72)  # shown 225px wide at most
-save(badge, "rcf-badge.webp", quality=90)
+# ---- page 5: camp photo (below the headline, clear of the side copy). Shown 494px wide at most.
+def build_camp():
+    p4 = Image.open(SRC / "page05.png").convert("RGB")
+    save(crop_to(p4, (429, 576, 2448, 2170), (988, 780)), "community-camp.webp", quality=86)
+
+
+# ---- page 32: the whole Revibe RCF shield, tip and bottom bolt included (its white rim is 11px wide here).
+# Shown 225px wide at most, so built 450px wide.
+def build_badge():
+    badge = shield_cutout(Image.open(SRC / "page32.png"), (1780, 2140, 2448, 2900), rim=11.0)
+    save(badge.resize((450, round(badge.height * 450 / badge.width)), Image.LANCZOS), "rcf-badge.webp", quality=90)
+
+
+PARTS = {"logo": build_logo, "hero": build_hero, "packs": build_packs, "one": build_one, "camp": build_camp,
+         "badge": build_badge}
+
+if __name__ == "__main__":
+    names = sys.argv[1:] or list(PARTS)
+    unknown = [n for n in names if n not in PARTS]
+    if unknown:
+        sys.exit(f"unknown part(s): {', '.join(unknown)}; pick from {', '.join(PARTS)}")
+    for n in names:
+        PARTS[n]()
