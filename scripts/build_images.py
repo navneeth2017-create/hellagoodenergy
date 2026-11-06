@@ -12,6 +12,9 @@ size), named after the deck page at the time the crop was made. Crop boxes below
 Plus the images Tom emailed on 2026-11-05 ("Marshawn Website Changes"), saved as WebP:
   tom-1105-pack-razzilicious.webp  turquoise Razzilicious pack, cut out, tilted (replaces Blue Razz)
   tom-1105-gummies-one-pack.webp   new pack art on red lightning + "1 PACK = 5 ENERGY DRINKS" banner
+  tom-1105-gummies-one-pack-expanded.png  the art above without the banner, grown 220 px upward (Adobe
+                                   generative expand) so the pack's cut-off top corner is whole
+  tom-1105-gummies-one-pack-cutout.png    the pack only (Adobe remove-background of the expanded art)
   tom-1105-marshawn-box.webp       Marshawn holding the retail box, white lightning, title card on top
   tom-1105-marshawn-box-cutout.png Marshawn and the box only (Adobe remove-background of the photo above)
 The Marshawn hoodie photo (page01), the camp photo (page05) and the "1 pack" page (page55) are off the
@@ -217,8 +220,10 @@ def build_razz():
 def build_one():
     """The pack stays fully solid (Adobe remove-background cut-out, source-pages/tom-1105-gummies-one-pack-cutout.png);
     only the red lightning behind it fades, on a soft ellipse that reaches nothing well before the image's edges, so
-    the picture has no visible box on the page (Nav)."""
-    src = Image.open(SRC / "tom-1105-gummies-one-pack.webp").convert("RGB").crop((0, 0, 1545, 1520))
+    the picture has no visible box on the page (Nav). Tom's photo cuts off the pack's top corner, so the source is
+    the photo grown 220 px upward with Adobe's generative expand (source-pages/tom-1105-gummies-one-pack-expanded.png),
+    and the cut-out is taken from that, so the corner is whole."""
+    src = Image.open(SRC / "tom-1105-gummies-one-pack-expanded.png").convert("RGB")
     pack = Image.open(SRC / "tom-1105-gummies-one-pack-cutout.png").convert("RGBA")
     pad = 90
     w, h = src.width + 2 * pad, src.height + 2 * pad

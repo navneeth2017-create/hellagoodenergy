@@ -1,6 +1,7 @@
-/* HELLA GOOD! lightning, in two places:
+/* HELLA GOOD! lightning, in three places:
  *  - the hero: jagged bolts in the brand's red, turquoise and orange strike behind the packs;
- *  - Marshawn with the box (cut out of Tom's photo): the same bolts strike behind him and his glow swells.
+ *  - Marshawn with the box (cut out of Tom's photo): the same bolts strike behind him and his glow swells;
+ *  - "1 Pack": red bolts strike in from the edges of the section at the pack, and its red glow swells (Nav).
  * Same streak shape as the share image (scripts/build_share_images.py). Strikes are spaced at least 0.9 s apart and
  * each flickers twice, so neither place flashes more than three times a second. A sky only strikes while it is on
  * screen and the tab is visible. Under reduced motion a few bolts are drawn once and stay still; without JS both keep
@@ -55,12 +56,15 @@
    * One lightning sky: `svg` covers `host`; bolts go from/to fractions of the host's box. Without an `svg` nothing is
    * drawn and the strikes only drive onStrike.
    * opts: { colors, wide: [spec], narrow: [spec], gap: [min ms, extra random ms], jag, still: how many bolts to draw
-   *         under reduced motion, onStrike(specs): called with the bolts that just fired }
+   *         under reduced motion, onStrike(specs): called with the bolts that just fired,
+   *         target: an element inside the host; when given, each bolt's `to` is a fraction of its box instead, so the
+   *         bolts land on it at every width }
    */
   function sky(host, svg, opts) {
     if (!host || !host.animate || (svg && !svg.animate)) return;
     let W = 0;
     let H = 0;
+    let T = null; // the target's box in host pixels
     let slots = [];
     let timer = 0;
     let running = false;
@@ -70,7 +74,8 @@
     function draw(slot) {
       if (!slot.g) return;
       const s = slot.spec;
-      const parts = streak([s.from[0] * W, s.from[1] * H], [s.to[0] * W, s.to[1] * H], 2, opts.jag, []);
+      const to = T ? [T.x + s.to[0] * T.w, T.y + s.to[1] * T.h] : [s.to[0] * W, s.to[1] * H];
+      const parts = streak([s.from[0] * W, s.from[1] * H], to, 2, opts.jag, []);
       const main = parts.filter((p) => p.depth === 2).map((p) => d(p.pts)).join('');
       const twigs = parts.filter((p) => p.depth < 2).map((p) => d(p.pts)).join('');
       slot.glow.setAttribute('d', main + twigs);
@@ -83,6 +88,7 @@
       const r = host.getBoundingClientRect();
       W = Math.round(r.width);
       H = Math.round(r.height);
+      T = opts.target ? box(opts.target) : null;
       const specs = wide.matches ? opts.wide : opts.narrow;
       if (!svg) {
         slots = specs.map((spec) => ({ spec }));
@@ -116,6 +122,22 @@
           s.g.style.opacity = 0.55;
         });
       }
+    }
+
+    // Where the target sits in the host, by layout: offsets ignore the entrance animation's transform.
+    function box(el) {
+      let x = 0;
+      let y = 0;
+      let e = el;
+      while (e && e !== host) {
+        x += e.offsetLeft;
+        y += e.offsetTop;
+        e = e.offsetParent;
+      }
+      if (e === host) return { x, y, w: el.offsetWidth, h: el.offsetHeight };
+      const a = el.getBoundingClientRect();
+      const b = host.getBoundingClientRect();
+      return { x: a.left - b.left, y: a.top - b.top, w: a.width, h: a.height };
     }
 
     function flash(s) {
@@ -233,6 +255,39 @@
       boxSection.classList.remove('flash');
       void boxSection.offsetWidth; // restart the glow pulse
       boxSection.classList.add('flash');
+    },
+  });
+
+  // ---- "1 Pack": red bolts from the edges of the section. Each `to` is a fraction of the pack picture (the pack
+  // itself fills about x 0.07-0.83, y 0.11-0.93 of it), so they hit its corners and sides at every width; the pack
+  // is solid and sits on top, so a bolt seems to strike it.
+  const oneFive = document.querySelector('#one-equals-five');
+  sky(oneFive, document.querySelector('[data-one-sky]'), {
+    colors: { red: '#e8141c', hot: '#ff3b30' },
+    target: document.querySelector('.one-five-media img'),
+    wide: [
+      { from: [-0.01, 0.02], to: [0.18, 0.2], c: 'hot', w: 3.2 },
+      { from: [0.3, -0.02], to: [0.46, 0.15], c: 'red', w: 2.8 },
+      { from: [-0.02, 0.5], to: [0.12, 0.52], c: 'red', w: 2.6 },
+      { from: [0.06, 1.02], to: [0.24, 0.86], c: 'hot', w: 2.4 },
+      { from: [0.5, -0.02], to: [0.8, 0.22], c: 'red', w: 2.6 },
+      { from: [0.48, 1.02], to: [0.8, 0.8], c: 'hot', w: 2.4 },
+    ],
+    narrow: [
+      { from: [-0.02, 0.02], to: [0.16, 0.22], c: 'hot', w: 2.6 },
+      { from: [1.02, 0.04], to: [0.84, 0.2], c: 'red', w: 2.6 },
+      { from: [-0.02, 0.3], to: [0.1, 0.55], c: 'red', w: 2.4 },
+      { from: [1.02, 0.34], to: [0.9, 0.62], c: 'hot', w: 2.4 },
+      { from: [-0.02, 0.5], to: [0.22, 0.9], c: 'hot', w: 2.2 },
+      { from: [1.02, 0.48], to: [0.78, 0.86], c: 'red', w: 2.2 },
+    ],
+    gap: [1200, 1500],
+    jag: 0.07,
+    still: 3,
+    onStrike() {
+      oneFive.classList.remove('flash');
+      void oneFive.offsetWidth; // restart the glow pulse
+      oneFive.classList.add('flash');
     },
   });
 })();
