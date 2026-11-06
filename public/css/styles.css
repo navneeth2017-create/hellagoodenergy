@@ -532,7 +532,8 @@ mark.todo {
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-rows: auto auto auto;
-  column-gap: clamp(12px, 3vw, 22px);
+  /* wide enough that the shield's TM never touches the "1" of "1 PACK" (it read as "TM1 PACK" on a phone) */
+  column-gap: clamp(22px, 3vw, 28px);
   align-items: center;
   font-family: var(--display);
   font-style: italic;
@@ -542,7 +543,7 @@ mark.todo {
 }
 .caff-badge { grid-row: 1 / span 3; align-self: center; width: clamp(76px, 21vw, 132px); }
 .caff-badge img { width: 100%; height: auto; }
-.caff-badge .tm { top: 2%; right: -12px; font-size: clamp(13px, 3vw, 18px); }
+.caff-badge .tm { top: 2%; right: -10px; font-size: clamp(13px, 3vw, 18px); }
 .caff-pack { font-size: clamp(60px, 17vw, 120px); letter-spacing: -0.01em; }
 .caff-bar {
   display: block;
