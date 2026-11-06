@@ -521,6 +521,9 @@ mark.todo {
   background: radial-gradient(closest-side, rgba(255, 255, 255, 0.12), transparent);
 }
 .raw-badge img { position: relative; width: 190px; }
+.tm-wrap { position: relative; display: inline-block; }
+.tm { position: absolute; top: 6%; right: -8px; font: 700 22px/1 var(--body); color: #fff; }
+.tm-sup { font-size: 0.4em; vertical-align: top; position: relative; top: 0.15em; margin-left: 1px; }
 .raw-copy .h2 em { color: #fff; -webkit-text-stroke: 0; background: linear-gradient(90deg, var(--orange), var(--red)); -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: 0.06em; }
 .facts { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
 .facts li {
@@ -563,6 +566,7 @@ mark.todo {
   opacity: 0.9;
 }
 .community-photo { isolation: isolate; }
+.community-solo { max-width: 760px; text-align: center; }
 .community-copy .h2 em { color: var(--orange); }
 .built {
   margin: 8px 0 0;
@@ -888,6 +892,7 @@ html.has-cartbar body { padding-bottom: 80px; }
 
   .community-grid { grid-template-columns: 1fr 1fr; gap: 64px; }
   .community-photo { justify-self: end; }
+  .community-grid.community-solo { grid-template-columns: 1fr; }
   .tagline { flex-direction: row; margin-top: 96px; font-size: 30px; gap: 12px 28px; padding: 26px var(--gutter); }
   .tagline i { height: 28px; width: 4px; }
 

@@ -224,7 +224,7 @@ test('images: every <picture> offers AVIF first and every referenced file is ser
   await withServer(createApp({ stripe: null, publicUrl: ORIGIN, logger: quiet }), async (base) => {
     const html = await (await get(base, '/')).text();
     const pictures = html.match(/<picture>[\s\S]*?<\/picture>/g);
-    assert.equal(pictures.length, 8);
+    assert.equal(pictures.length, 6);
     for (const p of pictures) assert.match(p, /^<picture><source type="image\/avif" srcset="[^"]+\.avif\?v=[0-9a-f]{10}[^"]*"(?: sizes="[^"]+")?><img /);
     const urls = new Set();
     for (const m of html.matchAll(/(?:src|href)="(\/images\/[^"]+)"|(?:srcset|imagesrcset)="([^"]+)"/g)) {
@@ -232,7 +232,7 @@ test('images: every <picture> offers AVIF first and every referenced file is ser
       if (m[2]) for (const part of m[2].split(',')) urls.add(part.trim().split(/\s+/)[0]);
     }
     const images = [...urls].filter((u) => u.startsWith('/images/'));
-    assert.ok(images.length >= 20, `found ${images.length}`);
+    assert.ok(images.length >= 14, `found ${images.length}`);
     for (const u of images) {
       const r = await get(base, u);
       assert.equal(r.status, 200, u);

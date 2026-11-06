@@ -107,10 +107,13 @@ test('home page: SEO, sharing and icon tags, versioned assets', async () => {
     assert.match(html, /<link rel="stylesheet" href="\/css\/styles\.css\?v=[0-9a-f]{10}">/);
     assert.match(html, /<script src="\/js\/app\.js\?v=[0-9a-f]{10}" defer><\/script>/);
     assert.match(html, /<script src="\/js\/bolts\.js\?v=[0-9a-f]{10}" defer><\/script>/);
-    assert.match(html, /class="hero-packs"[\s\S]*pack-strawberry-lemonade[\s\S]*id="marshawn"[\s\S]*hero-marshawn\.webp/, 'packs up top, Marshawn further down');
+    assert.match(html, /class="hero-packs"[\s\S]*pack-strawberry-lemonade/, 'packs up top');
+    for (const gone of ['hero-marshawn', 'The man behind the gummies', 'community-camp', 'Blue Razz']) assert.ok(!html.includes(gone), `${gone} is off the page (Tom)`);
+    assert.ok(html.includes('Razzilicious') && html.includes('RCF&trade;'), 'Razzilicious name and RCF trademark (Tom)');
     assert.doesNotMatch(html, /<!--#include|\{\{[A-Z]+\}\}/, 'no template syntax leaks');
     assert.doesNotMatch(html, /name="robots"/, 'home is indexable');
-    assert.ok(html.includes('Do not exceed 2 gummies per day') && !html.includes('TODO Nav: daily max'), 'daily max set to 2 (Nav)');
+    assert.ok(html.includes('<strong>WARNING:</strong> One gummy contains 125 mg of RCF Caffeine. That is equivalent to (1) energy drink.') && html.includes('DO NOT consume this product if you have any heart conditions, or if pregnant or nursing.'), 'warning in Tom\'s words');
+    assert.ok(!html.includes('Do not exceed 2 gummies per day') && !html.includes('TODO Nav: daily max'), 'old warning gone');
     for (const gone of ['processing time', 'returns and refunds policy', 'support email or phone']) assert.ok(!html.includes(gone), gone);
     assert.ok(html.includes('arrives within 7 days') && html.includes('unopened products within 30 days') && html.includes('admin@hellagoodenergy.com'));
     assert.ok(html.includes('href="/privacy"') && html.includes('href="/terms"'), 'footer links to the policies');
@@ -199,7 +202,7 @@ test('/success with a key and a session id shows the order summary', async () =>
     metadata: { percent_off: '10' },
     line_items: {
       data: [
-        { description: 'HELLA GOOD! Energy Gummies: Blue Razz', quantity: 3, amount_total: 1617 },
+        { description: 'HELLA GOOD! Energy Gummies: Razzilicious', quantity: 3, amount_total: 1617 },
         { description: 'HELLA GOOD! Energy Gummies: <b>Orange</b> Pineapple Mango', quantity: 2, amount_total: 1078 },
       ],
     },
@@ -211,7 +214,7 @@ test('/success with a key and a session id shows the order summary', async () =>
     assert.deepEqual(stripe.retrieved[0].params, { expand: ['line_items'] });
     assert.match(html, /Order confirmed/);
     assert.match(html, /Order summary/);
-    assert.match(html, /Blue Razz/);
+    assert.match(html, /Razzilicious/);
     assert.match(html, /3 &times; \$5\.39/);
     assert.match(html, /\$16\.17/);
     assert.match(html, /Mix &amp; match 10% off/);

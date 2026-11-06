@@ -16,7 +16,7 @@
   const MAX_QTY_PER_FLAVOR = 100;
 
   const FLAVORS = Object.freeze([
-    { id: 'blue-razz', name: 'Blue Razz', color: 'blue', image: '/images/pack-blue-razz.webp' },
+    { id: 'blue-razz', name: 'Razzilicious', color: 'blue', image: '/images/pack-blue-razz.webp' },
     { id: 'strawberry-lemonade', name: 'Strawberry Lemonade', color: 'red', image: '/images/pack-strawberry-lemonade.webp' },
     { id: 'orange-pineapple-mango', name: 'Orange Pineapple Mango', color: 'orange', image: '/images/pack-orange-pineapple-mango.webp' },
   ]);
