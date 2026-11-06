@@ -224,7 +224,7 @@ test('images: every <picture> offers AVIF first and every referenced file is ser
   await withServer(createApp({ stripe: null, publicUrl: ORIGIN, logger: quiet }), async (base) => {
     const html = await (await get(base, '/')).text();
     const pictures = html.match(/<picture>[\s\S]*?<\/picture>/g);
-    assert.equal(pictures.length, 8);
+    assert.equal(pictures.length, 9); // 8 on the page + the footer logo
     for (const p of pictures) assert.match(p, /^<picture><source type="image\/avif" srcset="[^"]+\.avif\?v=[0-9a-f]{10}[^"]*"(?: sizes="[^"]+")?><img /);
     const urls = new Set();
     for (const m of html.matchAll(/(?:src|href)="(\/images\/[^"]+)"|(?:srcset|imagesrcset)="([^"]+)"/g)) {
@@ -294,7 +294,10 @@ test('brand links: the accessible name starts with the visible text', async () =
     for (const p of ['/', '/privacy', '/nope']) {
       const html = await (await get(base, p)).text();
       const links = html.match(/<a class="brand[^"]*"[^>]*>[\s\S]*?<\/a>/g);
-      assert.ok(links.length >= 2, p);
+      assert.ok(links.length >= 1, p);
+      // The footer's logo is the pack lockup as a picture; the link is named by its alt text, which reads what the
+      // picture says.
+      assert.match(html, /<a class="footer-logo" href="\/#top"><picture>[\s\S]*?alt="Marshawn Lynch HELLA GOOD!"><\/picture><\/a>/, p);
       for (const a of links) {
         const label = a.match(/aria-label="([^"]+)"/)[1];
         const text = a.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();

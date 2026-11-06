@@ -193,6 +193,22 @@ def build_logo():
     save(feather(logo, left=96, right=96), "logo-lockup.webp", quality=90)  # shown with mix-blend-mode: lighten
 
 
+# ---- The footer's logo (Nav): "MARSHAWN LYNCH" over "HELLA GOOD!", exactly as on the packs: the same lettering as
+# the hero lockup above, without the signature, ENERGY and GUMMIES. The box is the hero crop's rows 210-538 and
+# columns 270-925 (between the signature and ENERGY), taken from page 1 at full size; a black margin keeps GOOD!'s
+# drips off the edge. Shown 240px wide at most, so built 520 wide; mix-blend-mode: lighten drops the black.
+def build_footer_logo():
+    p1 = Image.open(SRC / "page01.png").convert("RGB")
+    s = 1186 / 2414  # the hero crop's scale
+    box = (round(20 + 270 / s), round(41 + 210 / s), round(20 + 925 / s), round(41 + 538 / s))
+    art = p1.crop(box)
+    pad = 24
+    out = Image.new("RGB", (art.width + 2 * pad, art.height + 2 * pad), (0, 0, 0))
+    out.paste(art, (pad, pad))
+    out = out.resize((520, round(out.height * 520 / out.width)), Image.LANCZOS)
+    save(out, "footer-lockup.webp", quality=90)
+
+
 # ---- pages 67 and 69: two of the three packs, cut out. Shown 380px tall at most, so built 760px tall, keeping each
 # slot's aspect ratio; the pack is the same height in all three.
 def build_packs():
@@ -280,7 +296,7 @@ def build_badge():
     save(badge.resize((450, round(badge.height * 450 / badge.width)), Image.LANCZOS), "rcf-badge.webp", quality=90)
 
 
-PARTS = {"logo": build_logo, "packs": build_packs, "razz": build_razz, "one": build_one, "box": build_box,
+PARTS = {"logo": build_logo, "footer": build_footer_logo, "packs": build_packs, "razz": build_razz, "one": build_one, "box": build_box,
          "badge": build_badge}
 
 if __name__ == "__main__":
