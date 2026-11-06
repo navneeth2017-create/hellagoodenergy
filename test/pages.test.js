@@ -113,7 +113,7 @@ test('home page: SEO, sharing and icon tags, versioned assets', async () => {
     assert.match(html, /class="pack pack-turq"><source type="image\/avif" srcset="\/images\/pack-razzilicious\.avif/, 'turquoise Razzilicious pack in the hero (Tom)');
     assert.match(html, /data-flavor="blue-razz" data-color="turquoise"[\s\S]*?pack-razzilicious\.webp/, 'Razzilicious card is turquoise with the new pack');
     assert.ok(!/pack-blue|pill-blue|data-color="blue"/.test(html), 'no blue left on the page');
-    assert.match(html, /id="the-box"[\s\S]*?data-box-sky[\s\S]*?marshawn-box\.webp[\s\S]*?From yo boi[\s\S]*?id="one-equals-five"/, 'Marshawn cut out with the box, on lightning, before 1 pack = 5');
+    assert.match(html, /class="hero-packs"[\s\S]*?id="the-box"[\s\S]*?data-box-sky[\s\S]*?marshawn-box\.webp[\s\S]*?From yo boi[\s\S]*?id="flavors"/, 'Marshawn with the box right under the hero, above the flavors (Nav)');
     assert.doesNotMatch(html, /<!--#include|\{\{[A-Z]+\}\}/, 'no template syntax leaks');
     assert.doesNotMatch(html, /name="robots"/, 'home is indexable');
     assert.ok(html.includes('<strong>WARNING:</strong> One gummy contains 125 mg of RCF Caffeine. That is equivalent to (1) energy drink.') && html.includes('DO NOT consume this product if you have any heart conditions, or if pregnant or nursing.'), 'warning in Tom\'s words');
