@@ -513,33 +513,41 @@ mark.todo {
   -webkit-mask-image: radial-gradient(ellipse 62% 58% at 50% 50%, #000 52%, transparent 100%);
   mask-image: radial-gradient(ellipse 62% 58% at 50% 50%, #000 52%, transparent 100%);
 }
-.equation {
+/* Tom's banner (his "GUMMIES" art): the RCF(TM) shield on the left; "1 PACK", a red bar "Contains As Much Caffeine
+   As:", then a red 5 beside "ENERGY / DRINKS". No equal sign (Tom). */
+.caff {
   margin: 0 0 18px;
   display: grid;
-  justify-items: start;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto auto;
+  column-gap: clamp(12px, 3vw, 22px);
+  align-items: center;
   font-family: var(--display);
   font-style: italic;
   font-weight: 900;
   text-transform: uppercase;
   line-height: 0.86;
 }
-.eq-1 { font-size: clamp(64px, 19vw, 132px); letter-spacing: -0.01em; }
-.eq-eq {
-  font-size: clamp(72px, 20vw, 140px);
-  line-height: 0.5;
-  color: var(--red);
-  margin: 8px 0 0 4px;
-  text-shadow: 0 0 30px rgba(232, 20, 28, 0.6);
+.caff-badge { grid-row: 1 / span 3; align-self: center; width: clamp(76px, 21vw, 132px); }
+.caff-badge img { width: 100%; height: auto; }
+.caff-badge .tm { top: 2%; right: -12px; font-size: clamp(13px, 3vw, 18px); }
+.caff-pack { font-size: clamp(60px, 17vw, 120px); letter-spacing: -0.01em; }
+.caff-bar {
+  display: block;
+  margin: 8px calc(-1 * var(--gutter)) 10px 0;
+  padding: 7px 14px 6px;
+  background: var(--red);
+  color: #fff;
+  font: 800 clamp(14px, 3.9vw, 21px) / 1.1 var(--display);
+  letter-spacing: 0.02em;
+  text-transform: none;
+  box-shadow: 0 10px 30px -10px rgba(232, 20, 28, 0.7);
 }
-.eq-5 { display: flex; align-items: center; gap: 12px; }
-.eq-5 b {
-  font-size: clamp(120px, 36vw, 230px);
-  line-height: 0.78;
-  color: var(--red);
-  text-shadow: 0 0 40px rgba(232, 20, 28, 0.6);
-}
-.eq-5 span { font-size: clamp(44px, 12.5vw, 88px); line-height: 0.88; }
-.eq-5 sup { font-size: 0.45em; color: var(--red); vertical-align: top; position: relative; top: 0.1em; }
+.caff-drinks { display: flex; align-items: flex-start; gap: 10px; }
+.caff-drinks b { font-size: clamp(56px, 16vw, 112px); line-height: 0.84; color: var(--red); text-shadow: 0 0 34px rgba(232, 20, 28, 0.55); }
+.caff-ed { display: grid; justify-items: center; font-size: clamp(44px, 12.5vw, 88px); line-height: 0.92; }
+.caff-dr { font-size: 0.92em; }
+.caff sup { font-size: 0.4em; color: var(--red); vertical-align: top; position: relative; top: 0.15em; }
 .footnote { margin: 0 0 22px; font-size: 13px; color: var(--muted); }
 
 /* ---------- 5. Raw coffee ---------- */

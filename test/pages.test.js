@@ -113,6 +113,7 @@ test('home page: SEO, sharing and icon tags, versioned assets', async () => {
     assert.match(html, /class="pack pack-turq"><source type="image\/avif" srcset="\/images\/pack-razzilicious\.avif/, 'turquoise Razzilicious pack in the hero (Tom)');
     assert.match(html, /data-flavor="blue-razz" data-color="turquoise"[\s\S]*?pack-razzilicious\.webp/, 'Razzilicious card is turquoise with the new pack');
     assert.ok(!/pack-blue|pill-blue|data-color="blue"/.test(html), 'no blue left on the page');
+    assert.ok(html.includes('Contains As Much Caffeine As:') && !/class="equation"|1 = 5|1 Pack = 5|1 pack = 5/i.test(html), 'Tom\'s banner wording, no equal sign');
     assert.match(html, /class="hero-packs"[\s\S]*?id="the-box"[\s\S]*?data-box-sky[\s\S]*?marshawn-box\.webp[\s\S]*?From yo boi[\s\S]*?id="flavors"/, 'Marshawn with the box right under the hero, above the flavors (Nav)');
     assert.doesNotMatch(html, /<!--#include|\{\{[A-Z]+\}\}/, 'no template syntax leaks');
     assert.doesNotMatch(html, /name="robots"/, 'home is indexable');
