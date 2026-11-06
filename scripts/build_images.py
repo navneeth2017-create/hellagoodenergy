@@ -1,16 +1,20 @@
 """Build web images from the brand's Canva deck (source-pages/ is the brief, not shipped).
 
-Usage: python3 scripts/build_images.py [logo] [hero] [packs] [one] [camp] [badge]   (no names: all of them)
+Usage: python3 scripts/build_images.py [logo] [packs] [razz] [one] [box] [badge]   (no names: all of them)
 Needs Pillow and numpy.
 
 Sources: PNG exports of pages of the brand's "GUMMIES" Canva deck at 2448x3168 (3x its 816x1056 page
 size), named after the deck page at the time the crop was made. Crop boxes below are in those pixels.
-  page01.png  logo lockup + hero (Marshawn in the hoodie holding the Strawberry Lemonade pack)
-  page05.png  camp photo (the deck has been reordered since: that page is now page 32)
-  page32.png  the same camp page, for the whole Revibe RCF shield badge
-  page55.png  tilted Strawberry Lemonade pack on red lightning ("1 pack = 5 energy drinks" section)
-  page67.png, page68.png, page69.png  Strawberry Lemonade, Blue Razz and Orange Pineapple Mango packs,
-              front-on on white (current "125mg per gummy" pack art); cut out onto transparency here
+  page01.png  logo lockup
+  page32.png  the camp page, for the whole Revibe RCF shield badge
+  page67.png, page69.png  Strawberry Lemonade and Orange Pineapple Mango packs, front-on on white
+              ("125mg per gummy" pack art); cut out onto transparency here
+Plus the images Tom emailed on 2026-11-05 ("Marshawn Website Changes"), saved as WebP:
+  tom-1105-pack-razzilicious.webp  turquoise Razzilicious pack, cut out, tilted (replaces Blue Razz)
+  tom-1105-gummies-one-pack.webp   new pack art on red lightning + "1 PACK = 5 ENERGY DRINKS" banner
+  tom-1105-marshawn-box.webp       Marshawn holding the retail box, white lightning, title card on top
+The Marshawn hoodie photo (page01), the camp photo (page05) and the "1 pack" page (page55) are off the
+site since Tom's email: the camp photo shows football players and can't be used.
 
 Everything is downscaled to about 2x the largest size the site shows it at, so it stays sharp on
 retina screens.
@@ -185,18 +189,11 @@ def build_logo():
     save(feather(logo, left=96, right=96), "logo-lockup.webp", quality=90)  # shown with mix-blend-mode: lighten
 
 
-def build_hero():
-    p1 = Image.open(SRC / "page01.png").convert("RGB")
-    hero = crop_to(p1, (20, 1571, 2434, 3155), (1186, 778))
-    save(feather(hero, left=112, right=112, top=80, bottom=140), "hero-marshawn.webp", quality=88)
-
-
-# ---- pages 67-69: the three packs, cut out. Shown 380px tall at most, so built 760px tall, keeping each
+# ---- pages 67 and 69: two of the three packs, cut out. Shown 380px tall at most, so built 760px tall, keeping each
 # slot's aspect ratio; the pack is the same height in all three.
 def build_packs():
     packs = {
         "pack-strawberry-lemonade.webp": ("page67.png", (540, 455, 2012, 2727), (458, 760)),
-        "pack-blue-razz.webp": ("page68.png", (566, 367, 2028, 2619), (438, 760)),
         "pack-orange-pineapple-mango.webp": ("page69.png", (1238, 1508, 2290, 3115), (443, 760)),
     }
     for name, (src, box, size) in packs.items():
@@ -204,18 +201,50 @@ def build_packs():
         save(on_canvas(pack, size, 664), name, quality=88)
 
 
-# ---- page 55: tilted pack on red lightning ("1 PACK = 5 ENERGY DRINKS"). Shown 562px wide at most, so
-# built 1124px wide.
+# ---- Tom, 2026-11-05: the turquoise Razzilicious pack (replaces Blue Razz). It comes cut out but tilted
+# 14.25 degrees clockwise; stood upright here so the hero and the flavor card tilt it like the other two.
+def build_razz():
+    pack = Image.open(SRC / "tom-1105-pack-razzilicious.webp").convert("RGBA")
+    pack = pack.rotate(14.25, resample=Image.BICUBIC, expand=True)
+    pack = pack.crop(pack.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox())
+    save(on_canvas(pack, (438, 760), 664), "pack-razzilicious.webp", quality=88)
+
+
+# ---- Tom, 2026-11-05 ("GUMMIES"): the new pack art on red lightning, for "1 PACK = 5 ENERGY DRINKS". The
+# black banner under it repeats the equation the page sets in type right next to it, so only the pack and
+# lightning are kept. Shown 562px wide at most, so built 1124px wide.
 def build_one():
-    p55 = Image.open(SRC / "page55.png").convert("RGB")
-    one = feather(crop_to(p55, (0, 0, 2448, 2945), (1124, 1352)), bottom=220, left=20, right=20, top=20)
+    src = Image.open(SRC / "tom-1105-gummies-one-pack.webp").convert("RGB")
+    one = feather(crop_to(src, (0, 0, 1545, 1520), (1124, 1106)), bottom=200, left=20, right=20, top=20)
     save(one, "one-pack-five.webp", quality=86)
 
 
-# ---- page 5: camp photo (below the headline, clear of the side copy). Shown 494px wide at most.
-def build_camp():
-    p4 = Image.open(SRC / "page05.png").convert("RGB")
-    save(crop_to(p4, (429, 576, 2448, 2170), (988, 780)), "community-camp.webp", quality=86)
+# ---- Tom, 2026-11-05 (image.png): Marshawn holding the retail box in front of white lightning. The
+# "From Yo Boi" title card above his head is cropped off (Nav); the edges fade into the page's black.
+# Shown 560px wide at most, so built 1100px wide.
+def build_box():
+    src = Image.open(SRC / "tom-1105-marshawn-box.webp").convert("RGB")
+    box = feather(crop_to(src, (1, 384, 1101, 1426), (1100, 1042)), top=150, bottom=170, left=90, right=90)
+    save(box, "marshawn-box.webp", quality=86)
+    save(box_lightning(box), "marshawn-box-bolts.webp", quality=84)
+
+
+def box_lightning(box):
+    """Just the photo's lightning (and the white glow around him), on transparency: bright, colourless pixels outside
+    a soft silhouette of Marshawn (head + body ellipses), so his white shirt and the box stay out. The page lays it
+    over the photo with mix-blend-mode: screen and flares it with each strike (js/bolts.js)."""
+    a = np.asarray(box.convert("RGBA")).astype(float)
+    h, w = a.shape[:2]
+    rgb, alpha = a[..., :3], a[..., 3] / 255
+    lum = rgb.mean(-1)
+    sat = rgb.max(-1) - rgb.min(-1)
+    key = np.clip((lum - 70) / 120, 0, 1) * np.clip(1 - (sat - 40) / 60, 0, 1)
+    yy, xx = np.mgrid[0:h, 0:w]
+    x, y = xx / w, yy / h
+    ell = lambda cx, cy, rx, ry: ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2
+    him = np.minimum(ell(0.5, 0.27, 0.155, 0.21), ell(0.5, 0.8, 0.34, 0.5))
+    outside = np.clip((him - 0.85) / 0.35, 0, 1)
+    return Image.fromarray(np.dstack([rgb, key * outside * alpha * 255]).astype(np.uint8), "RGBA")
 
 
 # ---- page 32: the whole Revibe RCF shield, tip and bottom bolt included (its white rim is 11px wide here).
@@ -225,7 +254,7 @@ def build_badge():
     save(badge.resize((450, round(badge.height * 450 / badge.width)), Image.LANCZOS), "rcf-badge.webp", quality=90)
 
 
-PARTS = {"logo": build_logo, "hero": build_hero, "packs": build_packs, "one": build_one, "camp": build_camp,
+PARTS = {"logo": build_logo, "packs": build_packs, "razz": build_razz, "one": build_one, "box": build_box,
          "badge": build_badge}
 
 if __name__ == "__main__":

@@ -87,8 +87,8 @@ test('every route has a deliberate Cache-Control', async () => {
       ['GET', versionedCss, 200, YEAR],
       ['GET', '/css/styles.css', 200, 'public, max-age=3600'],
       ['GET', versionedAvif, 200, YEAR],
-      ['GET', '/images/pack-blue-razz.avif', 200, 'public, max-age=604800'],
-      ['GET', '/images/pack-blue-razz.webp', 200, 'public, max-age=604800'],
+      ['GET', '/images/pack-razzilicious.avif', 200, 'public, max-age=604800'],
+      ['GET', '/images/pack-razzilicious.webp', 200, 'public, max-age=604800'],
       ['GET', '/fonts/inter-v20-latin.woff2', 200, YEAR],
       ['GET', '/fonts/OFL-Inter.txt', 200, 'public, max-age=3600'],
     ];
@@ -164,7 +164,7 @@ test('request log: method, path, status and time only; no query, IP, user agent,
     await get(base, '/success?session_id=cs_test_a1B2c3D4e5F6g7H8', { headers });
     await get(base, '/orders/jane.doe%40example.com/5551234567', { headers });
     await get(base, '/health', { headers });
-    await get(base, '/images/pack-blue-razz.webp', { headers });
+    await get(base, '/images/pack-razzilicious.webp', { headers });
     await get(base, '/images/missing.webp', { headers });
     await fetch(base + '/api/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: [{ flavor: 'blue-razz', qty: 1 }], email: 'buyer@example.com' }) });
   });
@@ -224,7 +224,7 @@ test('images: every <picture> offers AVIF first and every referenced file is ser
   await withServer(createApp({ stripe: null, publicUrl: ORIGIN, logger: quiet }), async (base) => {
     const html = await (await get(base, '/')).text();
     const pictures = html.match(/<picture>[\s\S]*?<\/picture>/g);
-    assert.equal(pictures.length, 6);
+    assert.equal(pictures.length, 7);
     for (const p of pictures) assert.match(p, /^<picture><source type="image\/avif" srcset="[^"]+\.avif\?v=[0-9a-f]{10}[^"]*"(?: sizes="[^"]+")?><img /);
     const urls = new Set();
     for (const m of html.matchAll(/(?:src|href)="(\/images\/[^"]+)"|(?:srcset|imagesrcset)="([^"]+)"/g)) {

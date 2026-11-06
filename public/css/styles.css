@@ -49,8 +49,8 @@
   --red: #e8141c;
   --red-deep: #c80d14; /* white text on it is 5.5:1 */
   --red-hot: #ff3b30;
-  --blue: #2f6bff;
-  --blue-hot: #5b8cff;
+  --turq: #14c4c0; /* Razzilicious turquoise; replaced the Blue Razz blue (Tom, 2026-11-05) */
+  --turq-hot: #3fe3de;
   --orange: #ff7a12;
   --orange-hot: #ff9a3d;
   --todo: #ffe04a;
@@ -232,7 +232,7 @@ mark.todo {
   pointer-events: none;
   background:
     radial-gradient(120% 42% at 50% 18%, rgba(232, 20, 28, 0.28), rgba(232, 20, 28, 0.1) 45%, transparent 80%),
-    radial-gradient(50% 20% at 0% 100%, rgba(47, 107, 255, 0.14), transparent 70%),
+    radial-gradient(50% 20% at 0% 100%, rgba(20, 196, 192, 0.14), transparent 70%),
     radial-gradient(50% 20% at 100% 100%, rgba(255, 122, 18, 0.12), transparent 70%);
 }
 
@@ -253,17 +253,19 @@ mark.todo {
 .pack { position: absolute; display: block; transform-origin: 50% 90%; }
 .pack img { height: 100%; width: auto; max-width: none; filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.65)); }
 .pack-red { z-index: 2; left: 50%; top: 0; height: 100%; transform: translateX(-50%); }
-.pack-blue { z-index: 1; left: 26%; top: 8%; height: 86%; transform: translateX(-50%) rotate(-8deg); }
+.pack-turq { z-index: 1; left: 26%; top: 8%; height: 86%; transform: translateX(-50%) rotate(-8deg); }
 .pack-orange { z-index: 1; left: 74%; top: 8%; height: 86%; transform: translateX(-50%) rotate(8deg); }
+/* The box is wide enough that every glow fades to nothing inside it (at -22% the turquoise and orange glows were
+   cut off by its sides, which showed as a hard vertical edge beside the logo). Same glows, same places as before. */
 .pack-aura {
   position: absolute;
-  inset: -12% -22%;
+  inset: -12% -40%;
   pointer-events: none;
   opacity: 0.8;
   background:
-    radial-gradient(30% 42% at 18% 58%, rgba(47, 107, 255, 0.5), transparent 70%),
-    radial-gradient(36% 48% at 50% 46%, rgba(232, 20, 28, 0.55), transparent 70%),
-    radial-gradient(30% 42% at 82% 58%, rgba(255, 122, 18, 0.45), transparent 70%);
+    radial-gradient(24% 42% at 24.4% 58%, rgba(20, 196, 192, 0.5), transparent 70%),
+    radial-gradient(28.8% 48% at 50% 46%, rgba(232, 20, 28, 0.55), transparent 70%),
+    radial-gradient(24% 42% at 75.6% 58%, rgba(255, 122, 18, 0.45), transparent 70%);
 }
 
 /* Lightning (drawn and struck by js/bolts.js): a blurred stroke in the bolt's color under a white core. */
@@ -292,7 +294,7 @@ mark.todo {
   border-radius: 999px;
   border: 1px solid currentColor;
 }
-.pill-blue { color: var(--blue-hot); }
+.pill-turq { color: var(--turq-hot); }
 .pill-red { color: var(--red-hot); }
 .pill-orange { color: var(--orange-hot); }
 
@@ -359,7 +361,7 @@ mark.todo {
   overflow: hidden;
 }
 .flavor-card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: linear-gradient(90deg, transparent, var(--c-hot), transparent); }
-.flavor-card[data-color="blue"] { --c: var(--blue); --c-hot: var(--blue-hot); }
+.flavor-card[data-color="turquoise"] { --c: var(--turq); --c-hot: var(--turq-hot); }
 .flavor-card[data-color="orange"] { --c: var(--orange); --c-hot: var(--orange-hot); }
 .flavor-img { height: 230px; display: flex; align-items: center; justify-content: center; }
 .flavor-img img { height: 100%; width: auto; max-width: 100%; object-fit: contain; }
@@ -424,8 +426,9 @@ mark.todo {
 }
 .btn-flavor:hover { background: var(--c-hot); }
 .btn-flavor.added { background: #fff; color: #000; }
-/* White on orange is 2.6:1; black on orange is 8:1 (WCAG AA). */
-.flavor-card[data-color="orange"] .btn-flavor { color: #000; box-shadow: 0 10px 26px -12px var(--c), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
+/* White on orange is 2.6:1 and on turquoise 2.2:1; black on them is 8:1 and 9.5:1 (WCAG AA). */
+.flavor-card[data-color="orange"] .btn-flavor,
+.flavor-card[data-color="turquoise"] .btn-flavor { color: #000; box-shadow: 0 10px 26px -12px var(--c), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
 .add5 {
   display: inline-flex;
   align-items: center;
@@ -465,10 +468,27 @@ mark.todo {
 .legal-box p:last-child { margin: 0; }
 .legal-box strong { color: #fff; }
 
-/* ---------- 3. Marshawn Lynch ---------- */
-.marshawn { overflow: hidden; background: #000; }
-.marshawn-grid { position: relative; display: grid; gap: 20px; align-items: center; }
-.marshawn-media img { width: min(100%, 560px); margin: 0 auto; mix-blend-mode: lighten; }
+/* ---------- 3. The box (Tom's photo, 2026-11-05) ---------- */
+.box-shot { overflow: hidden; background: #000; }
+.box-shot-wrap { position: relative; display: grid; justify-items: center; gap: 22px; }
+.box-shot-media { position: relative; width: min(100%, 560px); }
+.box-shot-media img { width: 100%; margin: 0 auto; }
+/* The photo's own lightning, cut out (scripts/build_images.py box_lightning), one copy per side. On each strike
+   (js/bolts.js) one side flares around a random spot, so the light jumps from branch to branch. Invisible until
+   then, and always under reduced motion. */
+.box-bolts {
+  display: block;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(46% 40% at var(--mx, 25%) var(--my, 50%), #000 25%, transparent 78%);
+  mask-image: radial-gradient(46% 40% at var(--mx, 25%) var(--my, 50%), #000 25%, transparent 78%);
+}
+.box-shot-media .box-bolts img { width: 100%; height: 100%; filter: brightness(1.45); }
+.box-bolts-l { clip-path: inset(0 50% 0 0); }
+.box-bolts-r { clip-path: inset(0 0 0 50%); }
 
 /* ---------- 4. 1 pack = 5 ---------- */
 .one-five { overflow: hidden; background: #050000; }
@@ -561,7 +581,7 @@ mark.todo {
   position: absolute;
   inset: 12px -12px -12px 12px;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--blue), var(--red) 50%, var(--orange));
+  background: linear-gradient(135deg, var(--turq), var(--red) 50%, var(--orange));
   z-index: -1;
   opacity: 0.9;
 }
@@ -773,7 +793,7 @@ html.has-cartbar body { padding-bottom: 80px; }
 .cart-line { display: grid; grid-template-columns: 64px 1fr auto; gap: 12px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
 .cart-line img { width: 64px; height: 80px; object-fit: contain; }
 .cart-line h3 { margin: 0 0 2px; font: italic 900 20px/1 var(--display); text-transform: uppercase; }
-.cart-line[data-color="blue"] h3 { color: var(--blue-hot); }
+.cart-line[data-color="turquoise"] h3 { color: var(--turq-hot); }
 .cart-line[data-color="red"] h3 { color: var(--red-hot); }
 .cart-line[data-color="orange"] h3 { color: var(--orange-hot); }
 .cart-line .unit { margin: 0 0 8px; font-size: 13px; color: var(--muted); }
@@ -802,7 +822,7 @@ html.has-cartbar body { padding-bottom: 80px; }
 }
 .quick-add button:hover { border-color: #fff; }
 .quick-add .plus { color: var(--muted); font: 600 13px/1 var(--body); text-transform: none; letter-spacing: 0; }
-.quick-add [data-color="blue"] { color: var(--blue-hot); }
+.quick-add [data-color="turquoise"] { color: var(--turq-hot); }
 .quick-add [data-color="red"] { color: var(--red-hot); }
 .quick-add [data-color="orange"] { color: var(--orange-hot); }
 
@@ -852,7 +872,7 @@ html.has-cartbar body { padding-bottom: 80px; }
     background:
       radial-gradient(64% 85% at 24% 40%, rgba(232, 20, 28, 0.26), rgba(232, 20, 28, 0.1) 45%, transparent 80%),
       radial-gradient(40% 60% at 74% 45%, rgba(232, 20, 28, 0.16), transparent 70%),
-      radial-gradient(30% 30% at 0% 100%, rgba(47, 107, 255, 0.16), transparent 70%),
+      radial-gradient(30% 30% at 0% 100%, rgba(20, 196, 192, 0.16), transparent 70%),
       radial-gradient(30% 30% at 100% 100%, rgba(255, 122, 18, 0.14), transparent 70%);
   }
   .hero-grid {
@@ -868,8 +888,7 @@ html.has-cartbar body { padding-bottom: 80px; }
   .hero-ctas .btn { flex: 0 0 auto; }
   .hero-packs { width: 100%; max-width: 600px; aspect-ratio: 1.12; justify-self: end; align-self: center; margin: 0; }
 
-  .marshawn-grid { grid-template-columns: 1.1fr 1fr; gap: 56px; }
-  .marshawn-media img { width: 100%; max-width: 593px; margin: 0; }
+  .box-shot-media { width: 600px; }
 
   .flavor-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .flavor-card { grid-template-columns: 1fr; padding: 22px 22px 24px; align-content: start; text-align: center; }
@@ -919,7 +938,7 @@ html.has-cartbar body { padding-bottom: 80px; }
   .drawer-scrim { transition-duration: 0.3s; }
   /* Hero packs drift a few pixels, out of step; the glow behind them swells with each lightning strike. */
   .pack-red { animation: pack-float 6s ease-in-out infinite; }
-  .pack-blue { animation: pack-float 6.8s ease-in-out -2.3s infinite; }
+  .pack-turq { animation: pack-float 6.8s ease-in-out -2.3s infinite; }
   .pack-orange { animation: pack-float 7.4s ease-in-out -4.1s infinite; }
   .hero.flash .pack-aura { animation: aura-flash 0.7s ease-out; }
 }
