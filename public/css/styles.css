@@ -507,11 +507,10 @@ mark.todo {
 .glow { position: absolute; inset: 0; pointer-events: none; }
 .glow-red { background: radial-gradient(70% 60% at 30% 50%, rgba(232, 20, 28, 0.28), transparent 70%); }
 .one-five-grid { position: relative; display: grid; gap: 8px; align-items: center; }
+/* The picture carries its own soft edge: the pack is solid, the lightning behind it fades out (build_images.py). */
 .one-five-media img {
   width: min(100%, 470px);
   margin: -20px auto 0;
-  -webkit-mask-image: radial-gradient(ellipse 62% 58% at 50% 50%, #000 52%, transparent 100%);
-  mask-image: radial-gradient(ellipse 62% 58% at 50% 50%, #000 52%, transparent 100%);
 }
 /* Tom's banner (his "GUMMIES" art): the RCF(TM) shield on the left; "1 PACK", a red bar "Contains As Much Caffeine
    As:", then a red 5 beside "ENERGY / DRINKS". No equal sign (Tom). */

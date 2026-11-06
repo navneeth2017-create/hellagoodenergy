@@ -215,9 +215,23 @@ def build_razz():
 # black banner under it repeats the equation the page sets in type right next to it, so only the pack and
 # lightning are kept. Shown 562px wide at most, so built 1124px wide.
 def build_one():
-    src = Image.open(SRC / "tom-1105-gummies-one-pack.webp").convert("RGB")
-    one = feather(crop_to(src, (0, 0, 1545, 1520), (1124, 1106)), bottom=200, left=20, right=20, top=20)
-    save(one, "one-pack-five.webp", quality=86)
+    """The pack stays fully solid (Adobe remove-background cut-out, source-pages/tom-1105-gummies-one-pack-cutout.png);
+    only the red lightning behind it fades, on a soft ellipse that reaches nothing well before the image's edges, so
+    the picture has no visible box on the page (Nav)."""
+    src = Image.open(SRC / "tom-1105-gummies-one-pack.webp").convert("RGB").crop((0, 0, 1545, 1520))
+    pack = Image.open(SRC / "tom-1105-gummies-one-pack-cutout.png").convert("RGBA")
+    pad = 90
+    w, h = src.width + 2 * pad, src.height + 2 * pad
+    yy, xx = np.mgrid[0:h, 0:w]
+    d = np.sqrt(((xx - w / 2) / (src.width / 2)) ** 2 + ((yy - h / 2) / (src.height / 2)) ** 2)
+    t = np.clip((d - 0.42) / (0.98 - 0.42), 0, 1)
+    fade = (1 - t * t * (3 - 2 * t)) * 255  # smoothstep from full at the middle to nothing at the ellipse edge
+    bg = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    bg.paste(src, (pad, pad))
+    bg.putalpha(Image.fromarray(fade.astype(np.uint8), "L"))
+    bg.alpha_composite(pack, (pad, pad))
+    out = bg.resize((1124, round(h * 1124 / w)), Image.LANCZOS)
+    save(out, "one-pack-five.webp", quality=88)
 
 
 # ---- Tom, 2026-11-05 (image.png): Marshawn holding the retail box. The photo's title card, white glow and white
