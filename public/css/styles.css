@@ -732,7 +732,6 @@ mark.todo {
 .footer-nav a:hover { text-decoration: underline; }
 .footer-legal { padding-top: 20px; font-size: 12.5px; line-height: 1.6; color: var(--dim); }
 .footer-legal p { margin: 0 0 10px; max-width: 70em; }
-.footer-legal .fda { color: #c8c8cf; font-weight: 500; border: 1px solid var(--line-2); padding: 12px 14px; border-radius: 10px; }
 .footer-legal .copy { margin-top: 18px; }
 .footer-legal a { color: #c8c8cf; text-underline-offset: 3px; }
 .footer-legal a:hover { color: #fff; }
