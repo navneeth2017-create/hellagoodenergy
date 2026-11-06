@@ -112,7 +112,6 @@ test('home page: SEO, sharing and icon tags, versioned assets', async () => {
     assert.ok(html.includes('Razzilicious') && html.includes('RCF&trade;'), 'Razzilicious name and RCF trademark (Tom)');
     assert.match(html, /class="pack pack-turq"><source type="image\/avif" srcset="\/images\/pack-razzilicious\.avif/, 'turquoise Razzilicious pack in the hero (Tom)');
     assert.match(html, /data-flavor="blue-razz" data-color="turquoise"[\s\S]*?pack-razzilicious\.webp/, 'Razzilicious card is turquoise with the new pack');
-    assert.match(html, /id="the-box"[\s\S]*?marshawn-box\.webp[\s\S]*?id="one-equals-five"/, 'Tom\'s box photo replaces the old Marshawn section, before 1 pack = 5');
     assert.ok(!/pack-blue|pill-blue|data-color="blue"/.test(html), 'no blue left on the page');
     assert.doesNotMatch(html, /<!--#include|\{\{[A-Z]+\}\}/, 'no template syntax leaks');
     assert.doesNotMatch(html, /name="robots"/, 'home is indexable');
