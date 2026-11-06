@@ -13,6 +13,7 @@ Plus the images Tom emailed on 2026-11-05 ("Marshawn Website Changes"), saved as
   tom-1105-pack-razzilicious.webp  turquoise Razzilicious pack, cut out, tilted (replaces Blue Razz)
   tom-1105-gummies-one-pack.webp   new pack art on red lightning + "1 PACK = 5 ENERGY DRINKS" banner
   tom-1105-marshawn-box.webp       Marshawn holding the retail box, white lightning, title card on top
+  tom-1105-marshawn-box-cutout.png Marshawn and the box only (Adobe remove-background of the photo above)
 The Marshawn hoodie photo (page01), the camp photo (page05) and the "1 pack" page (page55) are off the
 site since Tom's email: the camp photo shows football players and can't be used.
 
@@ -219,32 +220,16 @@ def build_one():
     save(one, "one-pack-five.webp", quality=86)
 
 
-# ---- Tom, 2026-11-05 (image.png): Marshawn holding the retail box in front of white lightning. The
-# "From Yo Boi" title card above his head is cropped off (Nav); the edges fade into the page's black.
-# Shown 560px wide at most, so built 1100px wide.
+# ---- Tom, 2026-11-05 (image.png): Marshawn holding the retail box. The photo's title card, white glow and white
+# lightning look pasted on (Nav), so only Marshawn and the box are used: cut out with Adobe's remove-background
+# (source-pages/tom-1105-marshawn-box-cutout.png, from the photo below the title card). The page puts him on its
+# own red glow with the hero's moving lightning behind him; his torso fades out at the bottom. Shown 440px wide at
+# most, so built 880px wide.
 def build_box():
-    src = Image.open(SRC / "tom-1105-marshawn-box.webp").convert("RGB")
-    box = feather(crop_to(src, (1, 384, 1101, 1426), (1100, 1042)), top=150, bottom=170, left=90, right=90)
-    save(box, "marshawn-box.webp", quality=86)
-    save(box_lightning(box), "marshawn-box-bolts.webp", quality=84)
-
-
-def box_lightning(box):
-    """Just the photo's lightning (and the white glow around him), on transparency: bright, colourless pixels outside
-    a soft silhouette of Marshawn (head + body ellipses), so his white shirt and the box stay out. The page lays it
-    over the photo with mix-blend-mode: screen and flares it with each strike (js/bolts.js)."""
-    a = np.asarray(box.convert("RGBA")).astype(float)
-    h, w = a.shape[:2]
-    rgb, alpha = a[..., :3], a[..., 3] / 255
-    lum = rgb.mean(-1)
-    sat = rgb.max(-1) - rgb.min(-1)
-    key = np.clip((lum - 70) / 120, 0, 1) * np.clip(1 - (sat - 40) / 60, 0, 1)
-    yy, xx = np.mgrid[0:h, 0:w]
-    x, y = xx / w, yy / h
-    ell = lambda cx, cy, rx, ry: ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2
-    him = np.minimum(ell(0.5, 0.27, 0.155, 0.21), ell(0.5, 0.8, 0.34, 0.5))
-    outside = np.clip((him - 0.85) / 0.35, 0, 1)
-    return Image.fromarray(np.dstack([rgb, key * outside * alpha * 255]).astype(np.uint8), "RGBA")
+    cut = Image.open(SRC / "tom-1105-marshawn-box-cutout.png").convert("RGBA")
+    cut = cut.crop((150, 40, 955, 1042))
+    cut = cut.resize((880, round(cut.height * 880 / cut.width)), Image.LANCZOS)
+    save(feather(cut, bottom=220), "marshawn-box.webp", quality=88)
 
 
 # ---- page 32: the whole Revibe RCF shield, tip and bottom bolt included (its white rim is 11px wide here).

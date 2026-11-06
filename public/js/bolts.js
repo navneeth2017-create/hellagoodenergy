@@ -1,7 +1,6 @@
 /* HELLA GOOD! lightning, in two places:
  *  - the hero: jagged bolts in the brand's red, turquoise and orange strike behind the packs;
- *  - Tom's photo of Marshawn with the box: the photo's own lightning flares, one side and one spot at a time, so it
- *    flickers from branch to branch (no drawn bolts there: they looked pasted on next to the real ones).
+ *  - Marshawn with the box (cut out of Tom's photo): the same bolts strike behind him and his glow swells.
  * Same streak shape as the share image (scripts/build_share_images.py). Strikes are spaced at least 0.9 s apart and
  * each flickers twice, so neither place flashes more than three times a second. A sky only strikes while it is on
  * screen and the tab is visible. Under reduced motion a few bolts are drawn once and stay still; without JS both keep
@@ -207,25 +206,33 @@
     },
   });
 
-  // ---- Marshawn with the box: each strike flares the photo's lightning around a random spot on one side (the
-  // lightning fans out from behind his shoulders and arms, so the spots stay off him).
-  const box = document.querySelector('[data-box-sky-host]');
-  const layers = {};
-  document.querySelectorAll('[data-box-bolts]').forEach((el) => (layers[el.dataset.boxBolts] = el));
-  const sides = [{ side: 'l' }, { side: 'r' }, { side: 'l' }, { side: 'r' }];
-  sky(box, null, {
-    wide: sides,
-    narrow: sides,
-    gap: [1000, 1200], // two flickers per strike, at least 1 s apart: never more than three flashes a second
-    onStrike(specs) {
-      new Set(specs.map((s) => s.side)).forEach((side) => {
-        const el = layers[side];
-        if (!el || !el.animate) return;
-        const x = side === 'l' ? 8 + Math.random() * 30 : 62 + Math.random() * 30;
-        el.style.setProperty('--mx', x.toFixed(1) + '%');
-        el.style.setProperty('--my', (12 + Math.random() * 74).toFixed(1) + '%');
-        el.animate(FLICKER, { duration: 850, easing: 'ease-out' });
-      });
+  // ---- Marshawn with the box: the hero's lightning, behind him (he is cut out and sits on top), striking in from
+  // the sides of his stage toward his shoulders and the box.
+  const boxSection = document.querySelector('#the-box');
+  sky(document.querySelector('[data-box-sky-host]'), document.querySelector('[data-box-sky]'), {
+    colors: { red: '#e8141c', hot: '#ff3b30', turq: '#14c4c0', orange: '#ff7a12' },
+    wide: [
+      { from: [-0.02, 0.04], to: [0.3, 0.32], c: 'hot', w: 3.4 },
+      { from: [1.02, 0.08], to: [0.7, 0.34], c: 'red', w: 3.2 },
+      { from: [-0.02, 0.58], to: [0.27, 0.6], c: 'turq', w: 3 },
+      { from: [1.02, 0.62], to: [0.73, 0.6], c: 'orange', w: 3 },
+      { from: [0.3, -0.02], to: [0.4, 0.16], c: 'red', w: 2.4 },
+      { from: [0.72, -0.02], to: [0.6, 0.16], c: 'hot', w: 2.4 },
+    ],
+    narrow: [
+      { from: [-0.02, 0.06], to: [0.3, 0.32], c: 'hot', w: 2.8 },
+      { from: [1.02, 0.1], to: [0.7, 0.34], c: 'red', w: 2.6 },
+      { from: [-0.02, 0.56], to: [0.27, 0.58], c: 'turq', w: 2.6 },
+      { from: [1.02, 0.6], to: [0.73, 0.58], c: 'orange', w: 2.6 },
+    ],
+    gap: [1200, 1500],
+    jag: 0.08,
+    still: 3,
+    onStrike() {
+      if (!boxSection) return;
+      boxSection.classList.remove('flash');
+      void boxSection.offsetWidth; // restart the glow pulse
+      boxSection.classList.add('flash');
     },
   });
 })();
