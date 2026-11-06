@@ -234,6 +234,12 @@ mark.todo {
     radial-gradient(120% 42% at 50% 18%, rgba(232, 20, 28, 0.28), rgba(232, 20, 28, 0.1) 45%, transparent 80%),
     radial-gradient(50% 20% at 0% 100%, rgba(20, 196, 192, 0.14), transparent 70%),
     radial-gradient(50% 20% at 100% 100%, rgba(255, 122, 18, 0.12), transparent 70%);
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 90px), transparent);
+  mask-image: linear-gradient(#000 calc(100% - 90px), transparent);
+}
+.hero > .sky {
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 90px), transparent);
+  mask-image: linear-gradient(#000 calc(100% - 90px), transparent);
 }
 
 /* ---------- 1. Hero ---------- */
@@ -485,6 +491,13 @@ mark.todo {
     radial-gradient(24% 34% at 80% 66%, rgba(255, 122, 18, 0.28), transparent 70%);
 }
 .box-shot-img { position: relative; z-index: 1; width: 100%; filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.6)); }
+/* The stage sits in open black, so its lightning fades in from the sides and top instead of starting on a line. */
+.box-stage .sky {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent), linear-gradient(to bottom, transparent, #000 12%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent), linear-gradient(to bottom, transparent, #000 12%);
+  mask-composite: intersect;
+}
 .box-shot-copy { text-align: center; }
 .box-shot-copy .h2 em { color: var(--red); }
 .box-shot-copy .lede { margin-left: auto; margin-right: auto; }
@@ -586,6 +599,7 @@ mark.todo {
 }
 .community-photo { isolation: isolate; }
 .community-solo { max-width: 760px; text-align: center; }
+.community-solo .lede { margin-left: auto; margin-right: auto; }
 .community-copy .h2 em { color: var(--orange); }
 .built {
   margin: 8px 0 0;
@@ -865,6 +879,7 @@ html.has-cartbar body { padding-bottom: 80px; }
   .nav a { text-decoration: none; font: 800 16px/1 var(--display); letter-spacing: 0.12em; text-transform: uppercase; color: #cfcfd6; padding: 8px 0; border-bottom: 2px solid transparent; }
   .nav a:hover { color: #fff; border-bottom-color: var(--red); }
   .section { padding: 104px 0; }
+  .section.community { padding-bottom: 0; }
 
   .hero { padding: 28px 0 64px; }
   .bolts {
@@ -887,8 +902,9 @@ html.has-cartbar body { padding-bottom: 80px; }
   .hero-ctas .btn { flex: 0 0 auto; }
   .hero-packs { width: 100%; max-width: 600px; aspect-ratio: 1.12; justify-self: end; align-self: center; margin: 0; }
 
-  .box-shot-grid { grid-template-columns: 1.1fr 1fr; gap: 48px; justify-items: stretch; }
-  .box-stage { justify-self: end; width: 640px; }
+  /* The stage keeps 640px wherever it fits and gives up width (not the copy) between 900 and ~1100px. */
+  .box-shot-grid { grid-template-columns: minmax(0, 640px) minmax(min-content, 1fr); gap: 48px; justify-items: stretch; }
+  .box-stage { justify-self: end; width: min(640px, 100%); }
   .box-shot-copy { text-align: left; }
   .box-shot-copy .lede { margin-left: 0; }
 

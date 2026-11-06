@@ -229,7 +229,29 @@ def build_box():
     cut = Image.open(SRC / "tom-1105-marshawn-box-cutout.png").convert("RGBA")
     cut = cut.crop((150, 40, 955, 1042))
     cut = cut.resize((880, round(cut.height * 880 / cut.width)), Image.LANCZOS)
-    save(feather(cut, bottom=220), "marshawn-box.webp", quality=88)
+    save(feather(defringe(cut), bottom=220), "marshawn-box.webp", quality=88)
+
+
+def defringe(img, steps=8):
+    """The cut-out's soft edge still carries the photo's light background, a grey rim around the dark hood and
+    jacket. Keep the alpha, but repaint every edge pixel with the colour of the solid subject just inside it:
+    start from fully opaque pixels (shrunk 2px), then grow that colour outward one ring at a time."""
+    rgba = np.asarray(img.convert("RGBA")).astype(np.float64)
+    rgb, alpha = rgba[..., :3].copy(), rgba[..., 3]
+    known = np.asarray(Image.fromarray(((alpha >= 250) * 255).astype(np.uint8)).filter(ImageFilter.MinFilter(5))) > 0
+    offsets = [(dy, dx) for dy in (-1, 0, 1) for dx in (-1, 0, 1) if dy or dx]
+    for _ in range(steps):
+        total = np.zeros_like(rgb)
+        count = np.zeros(alpha.shape)
+        for dy, dx in offsets:
+            k = np.roll(np.roll(known, dy, 0), dx, 1)
+            total += np.roll(np.roll(rgb, dy, 0), dx, 1) * k[..., None]
+            count += k
+        grow = (~known) & (count > 0)
+        rgb[grow] = total[grow] / count[grow][:, None]
+        known = known | grow
+    out = np.dstack([np.clip(rgb, 0, 255), alpha]).astype(np.uint8)
+    return Image.fromarray(out, "RGBA")
 
 
 # ---- page 32: the whole Revibe RCF shield, tip and bottom bolt included (its white rim is 11px wide here).

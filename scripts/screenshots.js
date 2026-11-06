@@ -73,7 +73,7 @@ async function settle(page) {
     payment_status: 'paid', amount_subtotal: 2695, amount_total: 3494, metadata: { percent_off: '10' },
     total_details: { amount_shipping: 799, amount_tax: 0 },
     line_items: { data: [
-      { description: 'HELLA GOOD! Energy Gummies: Blue Razz', quantity: 2, amount_total: 1078 },
+      { description: 'HELLA GOOD! Energy Gummies: Razzilicious', quantity: 2, amount_total: 1078 },
       { description: 'HELLA GOOD! Energy Gummies: Strawberry Lemonade', quantity: 2, amount_total: 1078 },
       { description: 'HELLA GOOD! Energy Gummies: Orange Pineapple Mango', quantity: 1, amount_total: 539 },
     ] },
