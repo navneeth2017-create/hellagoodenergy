@@ -115,6 +115,25 @@ test('home page: SEO, sharing and icon tags, versioned assets', async () => {
   });
 });
 
+test('the RCF badge opens the full RCF infographic', async () => {
+  await withServer(createApp({ stripe: null, publicUrl: ORIGIN, logger: quiet }), async (base) => {
+    const html = await (await get(base, '/')).text();
+    assert.match(html, /<button[^>]*class="raw-badge raw-badge-btn"[^>]*data-rcf-open[^>]*>/, 'the badge is a real button');
+    assert.match(html, /aria-controls="rcf-dialog"/);
+    assert.match(html, /<dialog id="rcf-dialog"[^>]*aria-labelledby="rcf-dialog-title"/);
+    assert.match(html, /\/images\/rcf-infographic\.avif\?v=[0-9a-f]{10}/, 'AVIF first');
+    assert.match(html, /\/images\/rcf-infographic\.webp\?v=[0-9a-f]{10}/, 'WebP fallback');
+    assert.match(html, /href="\/images\/rcf-infographic\.webp\?v=[0-9a-f]{10}" target="_blank" rel="noopener"/, 'full-size link');
+    for (const [file, type] of [['rcf-infographic.avif', /^image\/avif/], ['rcf-infographic.webp', /^image\/webp/]]) {
+      const r = await get(base, `/images/${file}`);
+      assert.equal(r.status, 200, file);
+      assert.match(r.headers.get('content-type'), type, file);
+    }
+    const js = await (await get(base, '/js/app.js')).text();
+    assert.ok(js.includes("showModal") && js.includes('#rcf-dialog'), 'the button opens it with the native dialog');
+  });
+});
+
 test('JSON-LD: Organization and a $5.99 USD Product per flavor, PreOrder while checkout is off', async () => {
   await withServer(createApp({ stripe: null, publicUrl: ORIGIN, logger: quiet }), async (base) => {
     const data = jsonLd(await (await get(base, '/')).text());
