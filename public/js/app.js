@@ -451,6 +451,54 @@
     });
   }
 
+  /* ---------- RCF infographic (the badge opens the full poster) ---------- */
+  const rcfDialog = $('#rcf-dialog');
+  const rcfOpen = $('[data-rcf-open]');
+  if (rcfDialog && rcfOpen) {
+    const rcfScroll = $('.rcf-dialog-scroll', rcfDialog);
+    const rcfZoom = $('[data-rcf-zoom]', rcfDialog);
+    rcfOpen.addEventListener('click', () => {
+      if (typeof rcfDialog.showModal !== 'function') {
+        window.open('/images/rcf-infographic.webp', '_blank', 'noopener');
+        return;
+      }
+      rcfDialog.showModal();
+      document.documentElement.classList.add('no-scroll');
+      if (rcfScroll) rcfScroll.scrollTop = 0;
+      const closeBtn = $('[data-rcf-close]', rcfDialog);
+      if (closeBtn) closeBtn.focus();
+    });
+    if (rcfZoom && rcfScroll) {
+      rcfZoom.addEventListener('click', () => {
+        const zoomed = rcfScroll.classList.toggle('is-zoomed');
+        rcfZoom.textContent = zoomed ? 'Fit' : 'Zoom';
+        rcfZoom.setAttribute('aria-pressed', String(zoomed));
+        const cx = (rcfScroll.scrollLeft + rcfScroll.clientWidth / 2) / Math.max(1, rcfScroll.scrollWidth);
+        requestAnimationFrame(() => {
+          rcfScroll.scrollLeft = cx * rcfScroll.scrollWidth - rcfScroll.clientWidth / 2;
+        });
+      });
+    }
+    rcfDialog.addEventListener('close', () => {
+      document.documentElement.classList.remove('no-scroll');
+      if (rcfZoom) {
+        rcfZoom.textContent = 'Zoom';
+        rcfZoom.setAttribute('aria-pressed', 'false');
+      }
+      if (rcfScroll) {
+        rcfScroll.classList.remove('is-zoomed');
+        rcfScroll.scrollTop = 0;
+        rcfScroll.scrollLeft = 0;
+      }
+    });
+    $$('[data-rcf-close]', rcfDialog).forEach((b) => b.addEventListener('click', () => rcfDialog.close()));
+    rcfDialog.addEventListener('click', (e) => {
+      if (e.target !== rcfDialog) return;
+      const r = rcfDialog.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) rcfDialog.close();
+    });
+  }
+
   fetch('/api/config')
     .then((r) => r.json())
     .then((c) => {

@@ -1113,3 +1113,104 @@ html.has-cartbar body { padding-bottom: 80px; }
   .doc h2 { font-size: 32px; }
   .status-wrap { padding-top: 88px; padding-bottom: 96px; }
 }
+
+/* ---------- RCF infographic viewer ---------- */
+.raw-badge-btn {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  border-radius: 12px;
+  cursor: zoom-in;
+}
+.raw-badge-btn img { transition: transform 0.3s var(--ease); }
+.raw-badge-btn:hover img { transform: scale(1.035); }
+.raw-badge-btn:active img { transform: scale(0.99); }
+.rcf-dialog {
+  width: min(94vw, 920px);
+  max-width: 920px;
+  max-height: 90vh;
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--line-2);
+  border-radius: 16px;
+  background: #050506;
+  color: var(--text);
+  box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.9);
+  overflow: hidden;
+}
+.rcf-dialog:not([open]) { display: none; }
+.rcf-dialog[open] { display: flex; flex-direction: column; }
+.rcf-dialog::backdrop { background: rgba(0, 0, 0, 0.82); backdrop-filter: blur(6px); }
+.rcf-dialog-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: none;
+  padding: 12px 14px 12px 20px;
+  border-bottom: 1px solid var(--line);
+  background: #0a0a0d;
+}
+.rcf-dialog-head h2 {
+  flex: 1;
+  margin: 0;
+  font: 800 15px/1.25 var(--body);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #e9e9ee;
+}
+.rcf-dialog-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #1c1c22;
+  font-size: 20px;
+}
+.rcf-dialog-close:hover { background: #2a2a33; }
+.rcf-dialog-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  background: #000;
+}
+.rcf-dialog-scroll img { width: 100%; height: auto; }
+.rcf-dialog-scroll.is-zoomed img { width: 200%; max-width: none; }
+.rcf-dialog-scroll.is-zoomed { cursor: zoom-out; }
+.rcf-dialog-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  flex: none;
+  padding: 12px 16px 12px 20px;
+  border-top: 1px solid var(--line);
+  background: #0a0a0d;
+}
+.rcf-dialog-foot .btn { min-height: 42px; padding: 0 20px; font-size: 16px; }
+.rcf-dialog-actions { display: flex; gap: 8px; flex: none; }
+
+@media (max-width: 640px) {
+  .rcf-dialog {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 100vh;
+    max-height: 100dvh;
+    margin: auto;
+    border: 0;
+    border-radius: 0;
+  }
+  .rcf-dialog-head h2 { font-size: 13px; }
+  .rcf-dialog-foot .btn { min-height: 38px; padding: 0 16px; font-size: 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .raw-badge-btn img { transition: none; }
+}
