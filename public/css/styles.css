@@ -1074,15 +1074,13 @@ html.has-cartbar body { padding-bottom: 80px; }
 .rcf-dialog-foot {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 16px;
   flex: none;
   padding: 12px 16px 12px 20px;
   border-top: 1px solid var(--line);
   background: #0a0a0d;
 }
-.rcf-dialog-foot a { color: var(--muted); font-size: 14px; text-underline-offset: 3px; }
-.rcf-dialog-foot a:hover { color: #fff; }
 .rcf-dialog-foot .btn { min-height: 42px; padding: 0 20px; font-size: 16px; }
 .rcf-dialog-actions { display: flex; gap: 8px; flex: none; }
 

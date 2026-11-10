@@ -123,7 +123,7 @@ test('the RCF badge opens the full RCF infographic', async () => {
     assert.match(html, /<dialog id="rcf-dialog"[^>]*aria-labelledby="rcf-dialog-title"/);
     assert.match(html, /\/images\/rcf-infographic\.avif\?v=[0-9a-f]{10}/, 'AVIF first');
     assert.match(html, /\/images\/rcf-infographic\.webp\?v=[0-9a-f]{10}/, 'WebP fallback');
-    assert.match(html, /href="\/images\/rcf-infographic\.webp\?v=[0-9a-f]{10}" target="_blank" rel="noopener"/, 'full-size link');
+    assert.doesNotMatch(html, /rcf-infographic\.webp[^>]*target="_blank"/, 'the viewer keeps visitors on the site');
     for (const [file, type] of [['rcf-infographic.avif', /^image\/avif/], ['rcf-infographic.webp', /^image\/webp/]]) {
       const r = await get(base, `/images/${file}`);
       assert.equal(r.status, 200, file);
