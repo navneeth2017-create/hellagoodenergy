@@ -22,7 +22,7 @@ IMG = PUB / "images"
 
 RED = (232, 20, 28)
 RED_HOT = (255, 59, 48)
-BLUE = (47, 107, 255)
+TURQUOISE = (20, 196, 192)  # Razzilicious (was Blue Razz blue)
 ORANGE = (255, 122, 18)
 
 # Same bolt as public/favicon.svg (viewBox 0 0 32 32).
@@ -111,7 +111,7 @@ def build_og():
     base = Image.new("RGB", (W, H), (0, 0, 0))
     base = add(base, radial_glow((W, H), (300, 300), (520, 360), RED, 0.55))
     base = add(base, radial_glow((W, H), (860, 330), (430, 330), RED, 0.35))
-    base = add(base, radial_glow((W, H), (0, H), (420, 260), BLUE, 0.45))
+    base = add(base, radial_glow((W, H), (0, H), (420, 260), TURQUOISE, 0.45))
     base = add(base, radial_glow((W, H), (W, H), (420, 260), ORANGE, 0.40))
 
     # Lightning behind the packs and along the edges.
@@ -120,7 +120,7 @@ def build_og():
             ((1180, -10), (930, 300), RED_HOT, 3),
             ((640, -10), (760, 250), RED, 2),
             ((1210, 380), (1040, 640), ORANGE, 2),
-            ((560, 640), (690, 420), BLUE, 2),
+            ((560, 640), (690, 420), TURQUOISE, 2),
             ((-10, 40), (190, 170), RED, 2),
         ]
     ):
@@ -141,7 +141,7 @@ def build_og():
 
     # The three packs, fanned: strawberry lemonade in front, the other two tilted behind it.
     packs = [
-        ("pack-blue-razz.webp", 400, 6, (584, 132)),
+        ("pack-razzilicious.webp", 400, 6, (584, 132)),
         ("pack-orange-pineapple-mango.webp", 400, -6, (918, 132)),
         ("pack-strawberry-lemonade.webp", 470, 0, (744, 78)),
     ]
@@ -187,7 +187,7 @@ def build_icons():
 
 
 def build_variants():
-    for name in ("hero-marshawn", "one-pack-five", "community-camp"):
+    for name in ("marshawn-box", "one-pack-five"):
         src = Image.open(IMG / f"{name}.webp")
         w = 360
         h = round(src.height * w / src.width)

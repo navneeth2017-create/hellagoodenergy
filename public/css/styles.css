@@ -49,8 +49,8 @@
   --red: #e8141c;
   --red-deep: #c80d14; /* white text on it is 5.5:1 */
   --red-hot: #ff3b30;
-  --blue: #2f6bff;
-  --blue-hot: #5b8cff;
+  --turq: #14c4c0; /* Razzilicious turquoise; replaced the Blue Razz blue (Tom, 2026-11-05) */
+  --turq-hot: #3fe3de;
   --orange: #ff7a12;
   --orange-hot: #ff9a3d;
   --todo: #ffe04a;
@@ -231,9 +231,15 @@ mark.todo {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(70% 26% at 50% 16%, rgba(232, 20, 28, 0.26), transparent 70%),
-    radial-gradient(50% 20% at 0% 100%, rgba(47, 107, 255, 0.14), transparent 70%),
+    radial-gradient(120% 42% at 50% 18%, rgba(232, 20, 28, 0.28), rgba(232, 20, 28, 0.1) 45%, transparent 80%),
+    radial-gradient(50% 20% at 0% 100%, rgba(20, 196, 192, 0.14), transparent 70%),
     radial-gradient(50% 20% at 100% 100%, rgba(255, 122, 18, 0.12), transparent 70%);
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 90px), transparent);
+  mask-image: linear-gradient(#000 calc(100% - 90px), transparent);
+}
+.hero > .sky {
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 90px), transparent);
+  mask-image: linear-gradient(#000 calc(100% - 90px), transparent);
 }
 
 /* ---------- 1. Hero ---------- */
@@ -241,12 +247,39 @@ mark.todo {
 .hero-grid {
   position: relative;
   display: grid;
-  grid-template-areas: "logo" "media" "copy";
+  grid-template-areas: "logo" "packs" "copy";
   justify-items: center;
 }
 .hero-logo { grid-area: logo; margin: 0; width: min(100%, 520px); }
 .hero-logo img { width: 100%; mix-blend-mode: lighten; }
-.hero-media { grid-area: media; width: min(100%, 560px); margin-top: -6px; position: relative; }
+
+/* The three packs, fanned like the share image: Strawberry Lemonade in front, the other two tilted behind it,
+   each over a glow in its own color. The pack art has 6% clear space above and below. */
+.hero-packs { grid-area: packs; position: relative; width: min(100%, 440px); aspect-ratio: 1.2; margin: -14px 0 8px; }
+.pack { position: absolute; display: block; transform-origin: 50% 90%; }
+.pack img { height: 100%; width: auto; max-width: none; filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.65)); }
+.pack-red { z-index: 2; left: 50%; top: 0; height: 100%; transform: translateX(-50%); }
+.pack-turq { z-index: 1; left: 26%; top: 8%; height: 86%; transform: translateX(-50%) rotate(-8deg); }
+.pack-orange { z-index: 1; left: 74%; top: 8%; height: 86%; transform: translateX(-50%) rotate(8deg); }
+/* The box is wide enough that every glow fades to nothing inside it (at -22% the turquoise and orange glows were
+   cut off by its sides, which showed as a hard vertical edge beside the logo). Same glows, same places as before. */
+.pack-aura {
+  position: absolute;
+  inset: -12% -40%;
+  pointer-events: none;
+  opacity: 0.8;
+  background:
+    radial-gradient(24% 42% at 24.4% 58%, rgba(20, 196, 192, 0.5), transparent 70%),
+    radial-gradient(28.8% 48% at 50% 46%, rgba(232, 20, 28, 0.55), transparent 70%),
+    radial-gradient(24% 42% at 75.6% 58%, rgba(255, 122, 18, 0.45), transparent 70%);
+}
+
+/* Lightning (drawn and struck by js/bolts.js): a blurred stroke in the bolt's color under a white core. */
+.sky { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.bolt { opacity: 0; }
+.bolt-glow { fill: none; stroke: var(--bolt); stroke-width: 12; stroke-linecap: round; stroke-linejoin: round; filter: url(#bolt-blur); }
+.bolt-halo { fill: none; stroke: var(--bolt); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.bolt-core { fill: none; stroke: #fff; stroke-linecap: round; stroke-linejoin: round; }
 .hero-copy { grid-area: copy; position: relative; z-index: 2; text-align: center; margin-top: -10px; }
 .hero-kicker {
   margin: 0 0 6px;
@@ -267,16 +300,23 @@ mark.todo {
   border-radius: 999px;
   border: 1px solid currentColor;
 }
-.pill-blue { color: var(--blue-hot); }
+.pill-turq { color: var(--turq-hot); }
 .pill-red { color: var(--red-hot); }
 .pill-orange { color: var(--orange-hot); }
 
 /* ---------- Section shell ---------- */
 .section { position: relative; padding: 64px 0; }
-.section + .section { border-top: 1px solid var(--line); }
+/* Sections flow into each other on black: no divider lines, and every section's glow fades in and out before its
+   edges, so no boundary shows (Nav: "nice and uniform"). */
 
 /* ---------- 2. Flavors ---------- */
-.flavors { background: radial-gradient(90% 60% at 50% 0%, #1a0406 0%, #000 60%); }
+/* Comes right after Marshawn's pure-black section: no divider line, and the red glow fades in from black instead of
+   starting at full strength on the boundary (Nav: "fade the in-between"). */
+.flavors {
+  background:
+    linear-gradient(#000, rgba(0, 0, 0, 0) 260px),
+    radial-gradient(90% 60% at 50% 16%, #1a0406 0%, #000 60%);
+}
 .nd-head { text-align: center; margin-bottom: 36px; }
 .nd-banner {
   position: relative;
@@ -334,7 +374,7 @@ mark.todo {
   overflow: hidden;
 }
 .flavor-card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: linear-gradient(90deg, transparent, var(--c-hot), transparent); }
-.flavor-card[data-color="blue"] { --c: var(--blue); --c-hot: var(--blue-hot); }
+.flavor-card[data-color="turquoise"] { --c: var(--turq); --c-hot: var(--turq-hot); }
 .flavor-card[data-color="orange"] { --c: var(--orange); --c-hot: var(--orange-hot); }
 .flavor-img { height: 230px; display: flex; align-items: center; justify-content: center; }
 .flavor-img img { height: 100%; width: auto; max-width: 100%; object-fit: contain; }
@@ -399,8 +439,9 @@ mark.todo {
 }
 .btn-flavor:hover { background: var(--c-hot); }
 .btn-flavor.added { background: #fff; color: #000; }
-/* White on orange is 2.6:1; black on orange is 8:1 (WCAG AA). */
-.flavor-card[data-color="orange"] .btn-flavor { color: #000; box-shadow: 0 10px 26px -12px var(--c), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
+/* White on orange is 2.6:1 and on turquoise 2.2:1; black on them is 8:1 and 9.5:1 (WCAG AA). */
+.flavor-card[data-color="orange"] .btn-flavor,
+.flavor-card[data-color="turquoise"] .btn-flavor { color: #000; box-shadow: 0 10px 26px -12px var(--c), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
 .add5 {
   display: inline-flex;
   align-items: center;
@@ -440,48 +481,90 @@ mark.todo {
 .legal-box p:last-child { margin: 0; }
 .legal-box strong { color: #fff; }
 
-/* ---------- 3. 1 pack = 5 ---------- */
-.one-five { overflow: hidden; background: #050000; }
+/* ---------- 3. From yo boi: Marshawn with the box (cut out of Tom's photo) ---------- */
+.box-shot { overflow: hidden; background: #000; }
+.box-shot-grid { display: grid; gap: 18px; align-items: center; justify-items: center; }
+/* The stage is wider than him so the lightning (js/bolts.js) has room to strike in from the sides. */
+.box-stage { position: relative; width: min(100%, 560px); padding: 4% 18% 0; }
+.box-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.85;
+  background:
+    radial-gradient(40% 44% at 50% 42%, rgba(232, 20, 28, 0.62), rgba(232, 20, 28, 0.2) 55%, transparent 76%),
+    radial-gradient(24% 34% at 20% 66%, rgba(20, 196, 192, 0.3), transparent 70%),
+    radial-gradient(24% 34% at 80% 66%, rgba(255, 122, 18, 0.28), transparent 70%);
+}
+.box-shot-img { position: relative; z-index: 1; width: 100%; filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.6)); }
+/* The stage sits in open black, so its lightning fades in from the sides and top instead of starting on a line. */
+.box-stage .sky {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent), linear-gradient(to bottom, transparent, #000 12%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent), linear-gradient(to bottom, transparent, #000 12%);
+  mask-composite: intersect;
+}
+.box-shot-copy { text-align: center; }
+.box-shot-copy .h2 em { color: var(--red); }
+.box-shot-copy .lede { margin-left: auto; margin-right: auto; }
+
+/* ---------- 4. 1 pack = 5 ---------- */
+.one-five { overflow: hidden; background: #000; }
 .glow { position: absolute; inset: 0; pointer-events: none; }
-.glow-red { background: radial-gradient(70% 60% at 30% 50%, rgba(232, 20, 28, 0.28), transparent 70%); }
+/* Same glow as before at rest (0.36 x 0.78 = 0.28); it swells to full with each lightning strike. */
+.glow-red { opacity: 0.78; background: radial-gradient(70% 60% at 30% 50%, rgba(232, 20, 28, 0.36), transparent 70%); }
+/* Its lightning comes out of the dark above and below instead of starting on the section's edge. */
+.one-five > .sky {
+  -webkit-mask-image: linear-gradient(transparent, #000 90px, #000 calc(100% - 90px), transparent);
+  mask-image: linear-gradient(transparent, #000 90px, #000 calc(100% - 90px), transparent);
+}
 .one-five-grid { position: relative; display: grid; gap: 8px; align-items: center; }
+/* The picture carries its own soft edge: the pack is solid, the lightning behind it fades out (build_images.py). */
 .one-five-media img {
   width: min(100%, 470px);
   margin: -20px auto 0;
-  -webkit-mask-image: radial-gradient(ellipse 62% 58% at 50% 50%, #000 52%, transparent 100%);
-  mask-image: radial-gradient(ellipse 62% 58% at 50% 50%, #000 52%, transparent 100%);
 }
-.equation {
+/* Tom's banner (his "GUMMIES" art): the RCF(TM) shield on the left; "1 PACK", a red bar "Contains As Much Caffeine
+   As:", then a red 5 beside "ENERGY / DRINKS". No equal sign (Tom). */
+.caff {
   margin: 0 0 18px;
   display: grid;
-  justify-items: start;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto auto;
+  /* wide enough that the shield's TM never touches the "1" of "1 PACK" (it read as "TM1 PACK" on a phone) */
+  column-gap: clamp(22px, 3vw, 28px);
+  align-items: center;
   font-family: var(--display);
   font-style: italic;
   font-weight: 900;
   text-transform: uppercase;
   line-height: 0.86;
 }
-.eq-1 { font-size: clamp(64px, 19vw, 132px); letter-spacing: -0.01em; }
-.eq-eq {
-  font-size: clamp(72px, 20vw, 140px);
-  line-height: 0.5;
-  color: var(--red);
-  margin: 8px 0 0 4px;
-  text-shadow: 0 0 30px rgba(232, 20, 28, 0.6);
+.caff-badge { grid-row: 1 / span 3; align-self: center; width: clamp(76px, 21vw, 132px); }
+.caff-badge img { width: 100%; height: auto; }
+.caff-badge .tm { top: 2%; right: -10px; font-size: clamp(13px, 3vw, 18px); }
+.caff-pack { font-size: clamp(60px, 17vw, 120px); letter-spacing: -0.01em; }
+.caff-bar {
+  display: block;
+  margin: 8px calc(-1 * var(--gutter)) 10px 0;
+  padding: 7px 14px 6px;
+  background: var(--red);
+  color: #fff;
+  font: 800 clamp(14px, 3.9vw, 21px) / 1.1 var(--display);
+  letter-spacing: 0.02em;
+  text-transform: none;
+  box-shadow: 0 10px 30px -10px rgba(232, 20, 28, 0.7);
 }
-.eq-5 { display: flex; align-items: center; gap: 12px; }
-.eq-5 b {
-  font-size: clamp(120px, 36vw, 230px);
-  line-height: 0.78;
-  color: var(--red);
-  text-shadow: 0 0 40px rgba(232, 20, 28, 0.6);
-}
-.eq-5 span { font-size: clamp(44px, 12.5vw, 88px); line-height: 0.88; }
-.eq-5 sup { font-size: 0.45em; color: var(--red); vertical-align: top; position: relative; top: 0.1em; }
+.caff-drinks { display: flex; align-items: flex-start; gap: 10px; }
+.caff-drinks b { font-size: clamp(56px, 16vw, 112px); line-height: 0.84; color: var(--red); text-shadow: 0 0 34px rgba(232, 20, 28, 0.55); }
+.caff-ed { display: grid; justify-items: center; font-size: clamp(44px, 12.5vw, 88px); line-height: 0.92; }
+.caff-dr { font-size: 0.92em; }
+.caff sup { font-size: 0.4em; color: var(--red); vertical-align: top; position: relative; top: 0.15em; }
 .footnote { margin: 0 0 22px; font-size: 13px; color: var(--muted); }
 
-/* ---------- 4. Raw coffee ---------- */
-.raw { background: linear-gradient(180deg, #000, #0b0908); }
+/* ---------- 5. Raw coffee ---------- */
+.raw { background: radial-gradient(85% 60% at 50% 55%, #0d0a09, #000 72%); }
 .raw-grid { display: grid; gap: 24px; align-items: center; }
 .raw-badge { justify-self: center; position: relative; }
 .raw-badge::before {
@@ -491,6 +574,9 @@ mark.todo {
   background: radial-gradient(closest-side, rgba(255, 255, 255, 0.12), transparent);
 }
 .raw-badge img { position: relative; width: 190px; }
+.tm-wrap { position: relative; display: inline-block; }
+.tm { position: absolute; top: 6%; right: -8px; font: 700 22px/1 var(--body); color: #fff; }
+.tm-sup { font-size: 0.4em; vertical-align: top; position: relative; top: 0.15em; margin-left: 1px; }
 .raw-copy .h2 em { color: #fff; -webkit-text-stroke: 0; background: linear-gradient(90deg, var(--orange), var(--red)); -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: 0.06em; }
 .facts { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
 .facts li {
@@ -506,7 +592,7 @@ mark.todo {
 .facts b small { font-size: 0.5em; color: var(--red); margin-left: 2px; }
 .facts span { color: var(--muted); font-size: 15px; line-height: 1.35; }
 
-/* ---------- 5. Community ---------- */
+/* ---------- 6. Community ---------- */
 .community { background: #000; overflow: hidden; padding-bottom: 0; }
 .community-grid { display: grid; gap: 28px; align-items: center; }
 .community-photo {
@@ -528,11 +614,13 @@ mark.todo {
   position: absolute;
   inset: 12px -12px -12px 12px;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--blue), var(--red) 50%, var(--orange));
+  background: linear-gradient(135deg, var(--turq), var(--red) 50%, var(--orange));
   z-index: -1;
   opacity: 0.9;
 }
 .community-photo { isolation: isolate; }
+.community-solo { max-width: 760px; text-align: center; }
+.community-solo .lede { margin-left: auto; margin-right: auto; }
 .community-copy .h2 em { color: var(--orange); }
 .built {
   margin: 8px 0 0;
@@ -560,8 +648,12 @@ mark.todo {
 .tagline { flex-direction: column; gap: 10px; }
 .tagline i { width: 28px; height: 3px; background: var(--red); transform: skewX(-14deg); }
 
-/* ---------- 6. Pricing ---------- */
-.pricing { background: radial-gradient(80% 60% at 50% 100%, #1a0406, #000 70%); }
+/* ---------- 7. Pricing ---------- */
+.pricing {
+  background:
+    linear-gradient(to top, #000, rgba(0, 0, 0, 0) 240px),
+    radial-gradient(80% 60% at 50% 74%, #1a0406, #000 70%);
+}
 .tiers { display: grid; gap: 14px; margin: 30px 0 22px; }
 .tier {
   position: relative;
@@ -595,7 +687,7 @@ mark.todo {
 .tier-foot { text-align: center; color: var(--muted); margin: 0 auto 26px; max-width: 34em; }
 .tier-foot strong { color: #fff; }
 
-/* ---------- 7. FAQ ---------- */
+/* ---------- 8. FAQ ---------- */
 .faq { background: #000; }
 .faq-wrap { max-width: 860px; }
 .faq-list { border-top: 1px solid var(--line-2); }
@@ -628,10 +720,12 @@ mark.todo {
 .faq details[open] summary::after { transform: rotate(45deg); background: var(--red); border-color: var(--red); }
 .faq details p { margin: 0 0 20px; color: #cfcfd6; max-width: 42em; }
 
-/* ---------- 8. Footer ---------- */
-.site-footer { background: #050506; border-top: 1px solid var(--line); padding: 44px 0 36px; }
+/* ---------- 9. Footer ---------- */
+.site-footer { background: linear-gradient(90deg, transparent, var(--line-2), transparent) top / 100% 1px no-repeat, #000; padding: 44px 0 36px; }
 .footer-top { display: grid; gap: 14px; justify-items: start; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
-.brand-lg { font-size: 42px; }
+/* The pack lockup, "MARSHAWN LYNCH" over "HELLA GOOD!" (Nav), on black; lighten drops the black. */
+.footer-logo { display: block; line-height: 0; }
+.footer-logo img { width: 210px; height: auto; mix-blend-mode: lighten; }
 .footer-tag { margin: 0; font: italic 800 16px/1.3 var(--display); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
 .footer-tag span { white-space: nowrap; }
 .footer-tag i { display: inline-block; width: 2px; height: 12px; background: var(--red); margin: 0 8px; transform: skewX(-14deg); }
@@ -640,7 +734,6 @@ mark.todo {
 .footer-nav a:hover { text-decoration: underline; }
 .footer-legal { padding-top: 20px; font-size: 12.5px; line-height: 1.6; color: var(--dim); }
 .footer-legal p { margin: 0 0 10px; max-width: 70em; }
-.footer-legal .fda { color: #c8c8cf; font-weight: 500; border: 1px solid var(--line-2); padding: 12px 14px; border-radius: 10px; }
 .footer-legal .copy { margin-top: 18px; }
 .footer-legal a { color: #c8c8cf; text-underline-offset: 3px; }
 .footer-legal a:hover { color: #fff; }
@@ -714,9 +807,10 @@ html.has-cartbar body { padding-bottom: 80px; }
 .tierbar-track { position: relative; height: 8px; border-radius: 99px; background: #26262c; margin: 0 0 22px; }
 .tierbar-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 99px; background: linear-gradient(90deg, #b70c12, var(--red-hot)); box-shadow: 0 0 14px rgba(255, 59, 48, 0.6); transition: width 0.35s var(--ease); }
 .tierbar-mark { position: absolute; top: 14px; transform: translateX(-50%); font: 700 11px/1 var(--body); color: var(--dim); white-space: nowrap; }
-.tierbar-mark i { position: absolute; left: 50%; top: -18px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: #26262c; border: 2px solid #0b0b0e; }
+/* Checkpoint dots, centred on the 8px track (the label sits 14px below the track's top, the dot's centre 4px below it). */
+.tierbar-mark i { position: absolute; left: 50%; top: -17px; box-sizing: border-box; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: #0b0b0e; border: 2px solid #4a4a54; transition: background 0.25s, border-color 0.25s, box-shadow 0.25s; }
 .tierbar-mark.hit { color: #fff; }
-.tierbar-mark.hit i { background: var(--red-hot); }
+.tierbar-mark.hit i { background: #fff; border: 3px solid var(--red-hot); box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.22), 0 0 12px rgba(255, 59, 48, 0.85); }
 .tierbar-mark.m5 { left: 33.333%; }
 .tierbar-mark.m15 { left: auto; right: 0; transform: none; }
 .tierbar-mark.m15 i { left: auto; right: 0; margin: 0; }
@@ -738,7 +832,7 @@ html.has-cartbar body { padding-bottom: 80px; }
 .cart-line { display: grid; grid-template-columns: 64px 1fr auto; gap: 12px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
 .cart-line img { width: 64px; height: 80px; object-fit: contain; }
 .cart-line h3 { margin: 0 0 2px; font: italic 900 20px/1 var(--display); text-transform: uppercase; }
-.cart-line[data-color="blue"] h3 { color: var(--blue-hot); }
+.cart-line[data-color="turquoise"] h3 { color: var(--turq-hot); }
 .cart-line[data-color="red"] h3 { color: var(--red-hot); }
 .cart-line[data-color="orange"] h3 { color: var(--orange-hot); }
 .cart-line .unit { margin: 0 0 8px; font-size: 13px; color: var(--muted); }
@@ -767,7 +861,7 @@ html.has-cartbar body { padding-bottom: 80px; }
 }
 .quick-add button:hover { border-color: #fff; }
 .quick-add .plus { color: var(--muted); font: 600 13px/1 var(--body); text-transform: none; letter-spacing: 0; }
-.quick-add [data-color="blue"] { color: var(--blue-hot); }
+.quick-add [data-color="turquoise"] { color: var(--turq-hot); }
 .quick-add [data-color="red"] { color: var(--red-hot); }
 .quick-add [data-color="orange"] { color: var(--orange-hot); }
 
@@ -811,16 +905,20 @@ html.has-cartbar body { padding-bottom: 80px; }
   .nav a { text-decoration: none; font: 800 16px/1 var(--display); letter-spacing: 0.12em; text-transform: uppercase; color: #cfcfd6; padding: 8px 0; border-bottom: 2px solid transparent; }
   .nav a:hover { color: #fff; border-bottom-color: var(--red); }
   .section { padding: 104px 0; }
+  .section.box-shot { padding-bottom: 48px; }
+  .section.community { padding-bottom: 0; }
 
   .hero { padding: 28px 0 64px; }
   .bolts {
     background:
-      radial-gradient(38% 50% at 24% 38%, rgba(232, 20, 28, 0.24), transparent 70%),
-      radial-gradient(30% 30% at 0% 100%, rgba(47, 107, 255, 0.16), transparent 70%);
+      radial-gradient(64% 85% at 24% 40%, rgba(232, 20, 28, 0.26), rgba(232, 20, 28, 0.1) 45%, transparent 80%),
+      radial-gradient(40% 60% at 74% 45%, rgba(232, 20, 28, 0.16), transparent 70%),
+      radial-gradient(30% 30% at 0% 100%, rgba(20, 196, 192, 0.16), transparent 70%),
+      radial-gradient(30% 30% at 100% 100%, rgba(255, 122, 18, 0.14), transparent 70%);
   }
   .hero-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 593px);
-    grid-template-areas: "logo media" "copy media";
+    grid-template-columns: minmax(0, 1fr) minmax(0, 600px);
+    grid-template-areas: "logo packs" "copy packs";
     align-items: end;
     column-gap: 40px;
   }
@@ -829,8 +927,13 @@ html.has-cartbar body { padding-bottom: 80px; }
   .hero-sub { margin-left: 0; }
   .hero-ctas, .flavor-pills { justify-content: flex-start; }
   .hero-ctas .btn { flex: 0 0 auto; }
-  .hero-media { width: 100%; max-width: 593px; justify-self: end; align-self: center; margin: 0; }
-  .hero-media img { mix-blend-mode: lighten; }
+  .hero-packs { width: 100%; max-width: 600px; aspect-ratio: 1.12; justify-self: end; align-self: center; margin: 0; }
+
+  /* The stage keeps 640px wherever it fits and gives up width (not the copy) between 900 and ~1100px. */
+  .box-shot-grid { grid-template-columns: minmax(0, 640px) minmax(min-content, 1fr); gap: 48px; justify-items: stretch; }
+  .box-stage { justify-self: end; width: min(640px, 100%); }
+  .box-shot-copy { text-align: left; }
+  .box-shot-copy .lede { margin-left: 0; }
 
   .flavor-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .flavor-card { grid-template-columns: 1fr; padding: 22px 22px 24px; align-content: start; text-align: center; }
@@ -853,6 +956,7 @@ html.has-cartbar body { padding-bottom: 80px; }
 
   .community-grid { grid-template-columns: 1fr 1fr; gap: 64px; }
   .community-photo { justify-self: end; }
+  .community-grid.community-solo { grid-template-columns: 1fr; }
   .tagline { flex-direction: row; margin-top: 96px; font-size: 30px; gap: 12px 28px; padding: 26px var(--gutter); }
   .tagline i { height: 28px; width: 4px; }
 
@@ -861,6 +965,7 @@ html.has-cartbar body { padding-bottom: 80px; }
   .tier-price { font-size: 72px; }
 
   .footer-top { grid-template-columns: auto 1fr auto; align-items: center; gap: 24px; }
+  .footer-logo img { width: 240px; }
   .footer-tag { justify-self: center; }
 }
 
@@ -877,8 +982,17 @@ html.has-cartbar body { padding-bottom: 80px; }
   .drawer.opening .cart-line:nth-child(2), .drawer.opening .quick-add button:nth-child(2) { animation-delay: 60ms; }
   .drawer.opening .cart-line:nth-child(3), .drawer.opening .quick-add button:nth-child(3) { animation-delay: 120ms; }
   .drawer-scrim { transition-duration: 0.3s; }
+  /* Hero packs drift a few pixels, out of step; the glow behind them swells with each lightning strike. */
+  .pack-red { animation: pack-float 6s ease-in-out infinite; }
+  .pack-turq { animation: pack-float 6.8s ease-in-out -2.3s infinite; }
+  .pack-orange { animation: pack-float 7.4s ease-in-out -4.1s infinite; }
+  .hero.flash .pack-aura { animation: aura-flash 0.7s ease-out; }
+  .box-shot.flash .box-stage::before { animation: aura-flash 0.7s ease-out; }
+  .one-five.flash .glow-red { animation: aura-flash 0.7s ease-out; }
 }
 @keyframes line-in { from { opacity: 0; transform: translate3d(18px, 0, 0); } }
+@keyframes pack-float { 50% { translate: 0 -8px; } }
+@keyframes aura-flash { 12% { opacity: 1; } }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .flavor-card { transition: transform 0.3s var(--ease), border-color 0.3s, box-shadow 0.3s var(--ease); }
   .flavor-card:hover {

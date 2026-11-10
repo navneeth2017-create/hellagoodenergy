@@ -68,7 +68,7 @@ test('every route has a deliberate Cache-Control', async () => {
   await withServer(createApp({ stripe: null, publicUrl: ORIGIN, logger: quiet }), async (base) => {
     const html = await (await get(base, '/')).text();
     const versionedCss = html.match(/\/css\/styles\.css\?v=[0-9a-f]{10}/)[0];
-    const versionedAvif = html.match(/\/images\/hero-marshawn\.avif\?v=[0-9a-f]{10}/)[0];
+    const versionedAvif = html.match(/\/images\/pack-strawberry-lemonade\.avif\?v=[0-9a-f]{10}/)[0];
     const YEAR = 'public, max-age=31536000, immutable';
     const cases = [
       ['GET', '/', 200, 'no-cache'],
@@ -87,8 +87,8 @@ test('every route has a deliberate Cache-Control', async () => {
       ['GET', versionedCss, 200, YEAR],
       ['GET', '/css/styles.css', 200, 'public, max-age=3600'],
       ['GET', versionedAvif, 200, YEAR],
-      ['GET', '/images/pack-blue-razz.avif', 200, 'public, max-age=604800'],
-      ['GET', '/images/pack-blue-razz.webp', 200, 'public, max-age=604800'],
+      ['GET', '/images/pack-razzilicious.avif', 200, 'public, max-age=604800'],
+      ['GET', '/images/pack-razzilicious.webp', 200, 'public, max-age=604800'],
       ['GET', '/fonts/inter-v20-latin.woff2', 200, YEAR],
       ['GET', '/fonts/OFL-Inter.txt', 200, 'public, max-age=3600'],
     ];
@@ -164,7 +164,7 @@ test('request log: method, path, status and time only; no query, IP, user agent,
     await get(base, '/success?session_id=cs_test_a1B2c3D4e5F6g7H8', { headers });
     await get(base, '/orders/jane.doe%40example.com/5551234567', { headers });
     await get(base, '/health', { headers });
-    await get(base, '/images/pack-blue-razz.webp', { headers });
+    await get(base, '/images/pack-razzilicious.webp', { headers });
     await get(base, '/images/missing.webp', { headers });
     await fetch(base + '/api/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: [{ flavor: 'blue-razz', qty: 1 }], email: 'buyer@example.com' }) });
   });
@@ -224,7 +224,7 @@ test('images: every <picture> offers AVIF first and every referenced file is ser
   await withServer(createApp({ stripe: null, publicUrl: ORIGIN, logger: quiet }), async (base) => {
     const html = await (await get(base, '/')).text();
     const pictures = html.match(/<picture>[\s\S]*?<\/picture>/g);
-    assert.equal(pictures.length, 9);
+    assert.equal(pictures.length, 9); // 8 on the page + the footer logo
     for (const p of pictures) assert.match(p, /^<picture><source type="image\/avif" srcset="[^"]+\.avif\?v=[0-9a-f]{10}[^"]*"(?: sizes="[^"]+")?><img /);
     const urls = new Set();
     for (const m of html.matchAll(/(?:src|href)="(\/images\/[^"]+)"|(?:srcset|imagesrcset)="([^"]+)"/g)) {
@@ -232,7 +232,7 @@ test('images: every <picture> offers AVIF first and every referenced file is ser
       if (m[2]) for (const part of m[2].split(',')) urls.add(part.trim().split(/\s+/)[0]);
     }
     const images = [...urls].filter((u) => u.startsWith('/images/'));
-    assert.ok(images.length >= 20, `found ${images.length}`);
+    assert.ok(images.length >= 14, `found ${images.length}`);
     for (const u of images) {
       const r = await get(base, u);
       assert.equal(r.status, 200, u);
@@ -294,7 +294,10 @@ test('brand links: the accessible name starts with the visible text', async () =
     for (const p of ['/', '/privacy', '/nope']) {
       const html = await (await get(base, p)).text();
       const links = html.match(/<a class="brand[^"]*"[^>]*>[\s\S]*?<\/a>/g);
-      assert.ok(links.length >= 2, p);
+      assert.ok(links.length >= 1, p);
+      // The footer's logo is the pack lockup as a picture; the link is named by its alt text, which reads what the
+      // picture says.
+      assert.match(html, /<a class="footer-logo" href="\/#top"><picture>[\s\S]*?alt="Marshawn Lynch HELLA GOOD!"><\/picture><\/a>/, p);
       for (const a of links) {
         const label = a.match(/aria-label="([^"]+)"/)[1];
         const text = a.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();

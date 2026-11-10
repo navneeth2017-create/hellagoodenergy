@@ -1,22 +1,33 @@
 """Build web images from the brand's Canva deck (source-pages/ is the brief, not shipped).
 
-Usage: python3 scripts/build_images.py
-Needs Pillow.
+Usage: python3 scripts/build_images.py [logo] [packs] [razz] [one] [box] [badge]   (no names: all of them)
+Needs Pillow and numpy.
 
 Sources: PNG exports of pages of the brand's "GUMMIES" Canva deck at 2448x3168 (3x its 816x1056 page
-size), named after the deck page. Crop boxes below are in those pixels.
-  page01.png  logo lockup + hero (Marshawn in the hoodie holding the Strawberry Lemonade pack)
-  page05.png  camp photo + Revibe RCF badge
-  page55.png  tilted Strawberry Lemonade pack on red lightning ("1 pack = 5 energy drinks" section)
-  page67.png, page68.png, page69.png  Strawberry Lemonade, Blue Razz and Orange Pineapple Mango packs,
-              front-on on white (current "125mg per gummy" pack art); cut out onto transparency here
+size), named after the deck page at the time the crop was made. Crop boxes below are in those pixels.
+  page01.png  logo lockup
+  page32.png  the camp page, for the whole Revibe RCF shield badge
+  page67.png, page69.png  Strawberry Lemonade and Orange Pineapple Mango packs, front-on on white
+              ("125mg per gummy" pack art); cut out onto transparency here
+Plus the images Tom emailed on 2026-11-05 ("Marshawn Website Changes"), saved as WebP:
+  tom-1105-pack-razzilicious.webp  turquoise Razzilicious pack, cut out, tilted (replaces Blue Razz)
+  tom-1105-gummies-one-pack.webp   new pack art on red lightning + "1 PACK = 5 ENERGY DRINKS" banner
+  tom-1105-gummies-one-pack-expanded.png  the art above without the banner, grown 220 px upward (Adobe
+                                   generative expand) so the pack's cut-off top corner is whole
+  tom-1105-gummies-one-pack-cutout.png    the pack only (Adobe remove-background of the expanded art)
+  tom-1105-marshawn-box.webp       Marshawn holding the retail box, white lightning, title card on top
+  tom-1105-marshawn-box-cutout.png Marshawn and the box only (Adobe remove-background of the photo above)
+The Marshawn hoodie photo (page01), the camp photo (page05) and the "1 pack" page (page55) are off the
+site since Tom's email: the camp photo shows football players and can't be used.
 
 Everything is downscaled to about 2x the largest size the site shows it at, so it stays sharp on
 retina screens.
 """
+import sys
 from collections import deque
 from pathlib import Path
 
+import numpy as np
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -100,72 +111,198 @@ def on_canvas(pack, size, pack_height):
     return canvas
 
 
-# ---- page 1: logo lockup + hero. Hero shown 593px wide at most, logo 511px, so both built 1186px wide.
-p1 = Image.open(SRC / "page01.png").convert("RGB")
-logo = crop_to(p1, (20, 41, 2434, 1563), (1186, 748))
-save(feather(logo, left=96, right=96), "logo-lockup.webp", quality=90)  # shown with mix-blend-mode: lighten
-hero = crop_to(p1, (20, 1571, 2434, 3155), (1186, 778))
-save(feather(hero, left=112, right=112, top=80, bottom=140), "hero-marshawn.webp", quality=88)
+def black_out_below(img, top, keep):
+    """Paint everything from row `top` down black, except inside the `keep` boxes (soft 1px edge).
 
-# ---- pages 67-69: the three packs, cut out. Shown 380px tall at most, so built 760px tall, keeping each
-# slot's aspect ratio; the pack is the same height in all three.
-packs = {
-    "pack-strawberry-lemonade.webp": ("page67.png", (540, 455, 2012, 2727), (458, 760)),
-    "pack-blue-razz.webp": ("page68.png", (566, 367, 2028, 2619), (438, 760)),
-    "pack-orange-pineapple-mango.webp": ("page69.png", (1238, 1508, 2290, 3115), (443, 760)),
-}
-for name, (src, box, size) in packs.items():
-    pack = cutout(Image.open(SRC / src), box)
-    save(on_canvas(pack, size, 664), name, quality=88)
+    The logo crop picks up the tips of the hero's lightning and the top of Marshawn's hood under the
+    lettering; on the site they would show as stray sparks cut off by the image's bottom edge.
+    """
+    w, h = img.size
+    mask = Image.new("L", (w, h), 0)
+    d = ImageDraw.Draw(mask)
+    d.rectangle((0, 0, w, top - 1), fill=255)
+    for box in keep:
+        d.rectangle(box, fill=255)
+    mask = mask.filter(ImageFilter.GaussianBlur(0.8))
+    return Image.composite(img, Image.new(img.mode, img.size, 0), mask)
 
-# ---- page 55: tilted pack on red lightning ("1 PACK = 5 ENERGY DRINKS"). Shown 562px wide at most, so
-# built 1124px wide.
-p55 = Image.open(SRC / "page55.png").convert("RGB")
-one = feather(crop_to(p55, (0, 0, 2448, 2945), (1124, 1352)), bottom=220, left=20, right=20, top=20)
-save(one, "one-pack-five.webp", quality=86)
 
-# ---- page 5: camp photo (below the headline, clear of the side copy) + Revibe RCF badge
-p4 = Image.open(SRC / "page05.png").convert("RGB")
-save(crop_to(p4, (429, 576, 2448, 2170), (988, 780)), "community-camp.webp", quality=86)  # shown 494px wide at most
+def shield_cutout(img, box, rim):
+    """Cut the Revibe RCF shield (black field, white rim) out of a photo onto transparency.
 
-badge = p4.crop((1819, 2179, 2432, 2710)).convert("RGBA")
-w, h = badge.size
-rgb = badge.load()
-outside = [[False] * w for _ in range(h)]
-q = deque()
-for x in range(w):
-    q.append((x, 0))
-for y in range(h):
-    q.extend([(0, y), (w - 1, y)])
-while q:
-    x, y = q.popleft()
-    if not (0 <= x < w and 0 <= y < h) or outside[y][x] or min(rgb[x, y][:3]) > 150:
-        continue
-    outside[y][x] = True
-    q.extend([(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)])
-# keep only the largest connected region that is not background (drops stray bits at the edges)
-seen = [[False] * w for _ in range(h)]
-best = []
-for sy in range(h):
-    for sx in range(w):
-        if outside[sy][sx] or seen[sy][sx]:
+    Its black field (the band between the rim and the ring) is the largest dark region inside the crop that does
+    not touch the crop's edge; filling its holes gives everything inside the rim. That is grown outward by the rim
+    width with a Euclidean distance, so the tip keeps its point, and the last pixel is anti-aliased.
+    """
+    crop = img.crop(box).convert("RGB")
+    rgb = np.asarray(crop)
+    h, w = rgb.shape[:2]
+    dark = rgb.max(axis=2) < 80
+    label = np.zeros((h, w), np.int32)
+    best, best_n, n = 0, 0, 0
+    for sy, sx in zip(*np.nonzero(dark)):
+        if label[sy, sx]:
             continue
-        comp, q = [], deque([(sx, sy)])
-        seen[sy][sx] = True
+        n += 1
+        q, size, edge = deque([(sy, sx)]), 0, False
+        label[sy, sx] = n
         while q:
-            x, y = q.popleft()
-            comp.append((x, y))
-            for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
-                if 0 <= nx < w and 0 <= ny < h and not outside[ny][nx] and not seen[ny][nx]:
-                    seen[ny][nx] = True
-                    q.append((nx, ny))
-        if len(comp) > len(best):
-            best = comp
-mask = Image.new("L", (w, h), 0)
-mp = mask.load()
-for x, y in best:
-    mp[x, y] = 255
-mask = mask.filter(ImageFilter.GaussianBlur(1.2))
-badge.putalpha(mask)
-badge = feather(badge.resize((450, 390), Image.LANCZOS), bottom=72)  # shown 225px wide at most
-save(badge, "rcf-badge.webp", quality=90)
+            y, x = q.popleft()
+            size += 1
+            edge |= y in (0, h - 1) or x in (0, w - 1)
+            for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
+                if 0 <= ny < h and 0 <= nx < w and dark[ny, nx] and not label[ny, nx]:
+                    label[ny, nx] = n
+                    q.append((ny, nx))
+        if not edge and size > best_n:
+            best, best_n = n, size
+    field = label == best
+    outside = np.zeros((h, w), bool)
+    q = deque([(y, x) for y in range(h) for x in (0, w - 1)] + [(y, x) for x in range(w) for y in (0, h - 1)])
+    while q:
+        y, x = q.popleft()
+        if not (0 <= y < h and 0 <= x < w) or outside[y, x] or field[y, x]:
+            continue
+        outside[y, x] = True
+        q.extend(((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)))
+    inner = ~outside
+    reach = 2 * int(rim + 3) + 1
+    near = np.asarray(Image.fromarray(inner.astype(np.uint8) * 255).filter(ImageFilter.MaxFilter(reach))) > 0
+    edge = inner & ~(np.roll(inner, 1, 0) & np.roll(inner, -1, 0) & np.roll(inner, 1, 1) & np.roll(inner, -1, 1))
+    by, bx = np.nonzero(edge)
+    cy, cx = np.nonzero(near & ~inner)
+    dist = np.empty(len(cy))
+    for i in range(0, len(cy), 4000):
+        d2 = (cy[i:i + 4000, None] - by[None, :]) ** 2 + (cx[i:i + 4000, None] - bx[None, :]) ** 2
+        dist[i:i + 4000] = np.sqrt(d2.min(axis=1))
+    alpha = inner.astype(np.float64)
+    alpha[cy, cx] = np.clip(rim + 0.5 - dist, 0, 1)
+    mask = Image.fromarray((alpha * 255).round().astype(np.uint8))
+    out = crop.convert("RGBA")
+    out.putalpha(mask)
+    return out.crop(mask.getbbox())
+
+
+# ---- page 1: logo lockup + hero. Hero shown 593px wide at most, logo 560px, so both built 1186px wide.
+def build_logo():
+    p1 = Image.open(SRC / "page01.png").convert("RGB")
+    logo = crop_to(p1, (20, 41, 2434, 1563), (1186, 748))
+    # Below the bottom of GOOD! only ENERGY, its TM and GUMMIES stay (boxes measured on this crop).
+    logo = black_out_below(logo, 540, [(282, 527, 908, 698), (896, 536, 935, 574), (705, 699, 912, 731),
+                                       (710, 732, 912, 734)])
+    save(feather(logo, left=96, right=96), "logo-lockup.webp", quality=90)  # shown with mix-blend-mode: lighten
+
+
+# ---- The footer's logo (Nav): "MARSHAWN LYNCH" over "HELLA GOOD!", exactly as on the packs: the same lettering as
+# the hero lockup above, without the signature, ENERGY and GUMMIES. The box is the hero crop's rows 210-538 and
+# columns 270-925 (between the signature and ENERGY), taken from page 1 at full size; a black margin keeps GOOD!'s
+# drips off the edge. Shown 240px wide at most, so built 520 wide; mix-blend-mode: lighten drops the black.
+def build_footer_logo():
+    p1 = Image.open(SRC / "page01.png").convert("RGB")
+    s = 1186 / 2414  # the hero crop's scale
+    box = (round(20 + 270 / s), round(41 + 210 / s), round(20 + 925 / s), round(41 + 538 / s))
+    art = p1.crop(box)
+    pad = 24
+    out = Image.new("RGB", (art.width + 2 * pad, art.height + 2 * pad), (0, 0, 0))
+    out.paste(art, (pad, pad))
+    out = out.resize((520, round(out.height * 520 / out.width)), Image.LANCZOS)
+    save(out, "footer-lockup.webp", quality=90)
+
+
+# ---- pages 67 and 69: two of the three packs, cut out. Shown 380px tall at most, so built 760px tall, keeping each
+# slot's aspect ratio; the pack is the same height in all three.
+def build_packs():
+    packs = {
+        "pack-strawberry-lemonade.webp": ("page67.png", (540, 455, 2012, 2727), (458, 760)),
+        "pack-orange-pineapple-mango.webp": ("page69.png", (1238, 1508, 2290, 3115), (443, 760)),
+    }
+    for name, (src, box, size) in packs.items():
+        pack = cutout(Image.open(SRC / src), box)
+        save(on_canvas(pack, size, 664), name, quality=88)
+
+
+# ---- Tom, 2026-11-05: the turquoise Razzilicious pack (replaces Blue Razz). It comes cut out but tilted
+# 14.25 degrees clockwise; stood upright here so the hero and the flavor card tilt it like the other two.
+def build_razz():
+    pack = Image.open(SRC / "tom-1105-pack-razzilicious.webp").convert("RGBA")
+    pack = pack.rotate(14.25, resample=Image.BICUBIC, expand=True)
+    pack = pack.crop(pack.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox())
+    save(on_canvas(pack, (438, 760), 664), "pack-razzilicious.webp", quality=88)
+
+
+# ---- Tom, 2026-11-05 ("GUMMIES"): the new pack art on red lightning, for "1 PACK = 5 ENERGY DRINKS". The
+# black banner under it repeats the equation the page sets in type right next to it, so only the pack and
+# lightning are kept. Shown 562px wide at most, so built 1124px wide.
+def build_one():
+    """The pack stays fully solid (Adobe remove-background cut-out, source-pages/tom-1105-gummies-one-pack-cutout.png);
+    only the red lightning behind it fades, on a soft ellipse that reaches nothing well before the image's edges, so
+    the picture has no visible box on the page (Nav). Tom's photo cuts off the pack's top corner, so the source is
+    the photo grown 220 px upward with Adobe's generative expand (source-pages/tom-1105-gummies-one-pack-expanded.png),
+    and the cut-out is taken from that, so the corner is whole."""
+    src = Image.open(SRC / "tom-1105-gummies-one-pack-expanded.png").convert("RGB")
+    pack = Image.open(SRC / "tom-1105-gummies-one-pack-cutout.png").convert("RGBA")
+    pad = 90
+    w, h = src.width + 2 * pad, src.height + 2 * pad
+    yy, xx = np.mgrid[0:h, 0:w]
+    d = np.sqrt(((xx - w / 2) / (src.width / 2)) ** 2 + ((yy - h / 2) / (src.height / 2)) ** 2)
+    t = np.clip((d - 0.42) / (0.98 - 0.42), 0, 1)
+    fade = (1 - t * t * (3 - 2 * t)) * 255  # smoothstep from full at the middle to nothing at the ellipse edge
+    bg = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    bg.paste(src, (pad, pad))
+    bg.putalpha(Image.fromarray(fade.astype(np.uint8), "L"))
+    bg.alpha_composite(pack, (pad, pad))
+    out = bg.resize((1124, round(h * 1124 / w)), Image.LANCZOS)
+    save(out, "one-pack-five.webp", quality=88)
+
+
+# ---- Tom, 2026-11-05 (image.png): Marshawn holding the retail box. The photo's title card, white glow and white
+# lightning look pasted on (Nav), so only Marshawn and the box are used: cut out with Adobe's remove-background
+# (source-pages/tom-1105-marshawn-box-cutout.png, from the photo below the title card). The page puts him on its
+# own red glow with the hero's moving lightning behind him; his torso fades out at the bottom. Shown 440px wide at
+# most, so built 880px wide.
+def build_box():
+    cut = Image.open(SRC / "tom-1105-marshawn-box-cutout.png").convert("RGBA")
+    cut = cut.crop((150, 40, 955, 1042))
+    cut = cut.resize((880, round(cut.height * 880 / cut.width)), Image.LANCZOS)
+    save(feather(defringe(cut), bottom=220), "marshawn-box.webp", quality=88)
+
+
+def defringe(img, steps=8):
+    """The cut-out's soft edge still carries the photo's light background, a grey rim around the dark hood and
+    jacket. Keep the alpha, but repaint every edge pixel with the colour of the solid subject just inside it:
+    start from fully opaque pixels (shrunk 2px), then grow that colour outward one ring at a time."""
+    rgba = np.asarray(img.convert("RGBA")).astype(np.float64)
+    rgb, alpha = rgba[..., :3].copy(), rgba[..., 3]
+    known = np.asarray(Image.fromarray(((alpha >= 250) * 255).astype(np.uint8)).filter(ImageFilter.MinFilter(5))) > 0
+    offsets = [(dy, dx) for dy in (-1, 0, 1) for dx in (-1, 0, 1) if dy or dx]
+    for _ in range(steps):
+        total = np.zeros_like(rgb)
+        count = np.zeros(alpha.shape)
+        for dy, dx in offsets:
+            k = np.roll(np.roll(known, dy, 0), dx, 1)
+            total += np.roll(np.roll(rgb, dy, 0), dx, 1) * k[..., None]
+            count += k
+        grow = (~known) & (count > 0)
+        rgb[grow] = total[grow] / count[grow][:, None]
+        known = known | grow
+    out = np.dstack([np.clip(rgb, 0, 255), alpha]).astype(np.uint8)
+    return Image.fromarray(out, "RGBA")
+
+
+# ---- page 32: the whole Revibe RCF shield, tip and bottom bolt included (its white rim is 11px wide here).
+# Shown 225px wide at most, so built 450px wide.
+def build_badge():
+    badge = shield_cutout(Image.open(SRC / "page32.png"), (1780, 2140, 2448, 2900), rim=11.0)
+    save(badge.resize((450, round(badge.height * 450 / badge.width)), Image.LANCZOS), "rcf-badge.webp", quality=90)
+
+
+PARTS = {"logo": build_logo, "footer": build_footer_logo, "packs": build_packs, "razz": build_razz, "one": build_one, "box": build_box,
+         "badge": build_badge}
+
+if __name__ == "__main__":
+    names = sys.argv[1:] or list(PARTS)
+    unknown = [n for n in names if n not in PARTS]
+    if unknown:
+        sys.exit(f"unknown part(s): {', '.join(unknown)}; pick from {', '.join(PARTS)}")
+    for n in names:
+        PARTS[n]()

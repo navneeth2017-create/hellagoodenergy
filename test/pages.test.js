@@ -102,13 +102,23 @@ test('home page: SEO, sharing and icon tags, versioned assets', async () => {
     assert.match(html, /<meta name="twitter:card" content="summary_large_image">/);
     assert.match(html, /<link rel="icon" href="\/favicon\.svg\?v=[0-9a-f]{10}" type="image\/svg\+xml">/);
     assert.match(html, /<link rel="apple-touch-icon" href="\/apple-touch-icon\.png\?v=[0-9a-f]{10}">/);
-    assert.match(html, /<link rel="preload" as="image" type="image\/avif" href="\/images\/hero-marshawn\.avif\?v=[0-9a-f]{10}"/);
+    assert.match(html, /<link rel="preload" as="image" type="image\/avif" href="\/images\/pack-strawberry-lemonade\.avif\?v=[0-9a-f]{10}"/);
     assert.match(html, /<link rel="preload" href="\/fonts\/barlow-condensed-v13-900-italic\.woff2" as="font" type="font\/woff2" crossorigin>/);
     assert.match(html, /<link rel="stylesheet" href="\/css\/styles\.css\?v=[0-9a-f]{10}">/);
     assert.match(html, /<script src="\/js\/app\.js\?v=[0-9a-f]{10}" defer><\/script>/);
+    assert.match(html, /<script src="\/js\/bolts\.js\?v=[0-9a-f]{10}" defer><\/script>/);
+    assert.match(html, /class="hero-packs"[\s\S]*pack-strawberry-lemonade/, 'packs up top');
+    for (const gone of ['hero-marshawn', 'The man behind the gummies', 'community-camp', 'Blue Razz']) assert.ok(!html.includes(gone), `${gone} is off the page (Tom)`);
+    assert.ok(html.includes('Razzilicious') && html.includes('RCF&trade;'), 'Razzilicious name and RCF trademark (Tom)');
+    assert.match(html, /class="pack pack-turq"><source type="image\/avif" srcset="\/images\/pack-razzilicious\.avif/, 'turquoise Razzilicious pack in the hero (Tom)');
+    assert.match(html, /data-flavor="blue-razz" data-color="turquoise"[\s\S]*?pack-razzilicious\.webp/, 'Razzilicious card is turquoise with the new pack');
+    assert.ok(!/pack-blue|pill-blue|data-color="blue"/.test(html), 'no blue left on the page');
+    assert.ok(html.includes('Contains As Much Caffeine As:') && !/class="equation"|1 = 5|1 Pack = 5|1 pack = 5/i.test(html), 'Tom\'s banner wording, no equal sign');
+    assert.match(html, /class="hero-packs"[\s\S]*?id="the-box"[\s\S]*?data-box-sky[\s\S]*?marshawn-box\.webp[\s\S]*?From yo boi[\s\S]*?id="flavors"/, 'Marshawn with the box right under the hero, above the flavors (Nav)');
     assert.doesNotMatch(html, /<!--#include|\{\{[A-Z]+\}\}/, 'no template syntax leaks');
     assert.doesNotMatch(html, /name="robots"/, 'home is indexable');
-    assert.ok(html.includes('Do not exceed 2 gummies per day') && !html.includes('TODO Nav: daily max'), 'daily max set to 2 (Nav)');
+    assert.ok(html.includes('<strong>WARNING:</strong> One gummy contains 125 mg of RCF Caffeine. That is equivalent to (1) energy drink.') && html.includes('DO NOT consume this product if you have any heart conditions, or if pregnant or nursing.'), 'warning in Tom\'s words');
+    assert.ok(!html.includes('Do not exceed 2 gummies per day') && !html.includes('TODO Nav: daily max'), 'old warning gone');
     for (const gone of ['processing time', 'returns and refunds policy', 'support email or phone']) assert.ok(!html.includes(gone), gone);
     assert.ok(html.includes('arrives within 7 days') && html.includes('unopened products within 30 days') && html.includes('admin@hellagoodenergy.com'));
     assert.ok(html.includes('href="/privacy"') && html.includes('href="/terms"'), 'footer links to the policies');
@@ -216,7 +226,7 @@ test('/success with a key and a session id shows the order summary', async () =>
     metadata: { percent_off: '10' },
     line_items: {
       data: [
-        { description: 'HELLA GOOD! Energy Gummies: Blue Razz', quantity: 3, amount_total: 1617 },
+        { description: 'HELLA GOOD! Energy Gummies: Razzilicious', quantity: 3, amount_total: 1617 },
         { description: 'HELLA GOOD! Energy Gummies: <b>Orange</b> Pineapple Mango', quantity: 2, amount_total: 1078 },
       ],
     },
@@ -228,7 +238,7 @@ test('/success with a key and a session id shows the order summary', async () =>
     assert.deepEqual(stripe.retrieved[0].params, { expand: ['line_items'] });
     assert.match(html, /Order confirmed/);
     assert.match(html, /Order summary/);
-    assert.match(html, /Blue Razz/);
+    assert.match(html, /Razzilicious/);
     assert.match(html, /3 &times; \$5\.39/);
     assert.match(html, /\$16\.17/);
     assert.match(html, /Mix &amp; match 10% off/);

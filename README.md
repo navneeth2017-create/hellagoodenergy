@@ -144,9 +144,10 @@ returns to the opener, updates announced). It uses a globally installed Playwrig
 
 ## TODO for Nav
 
-Search for the yellow `[TODO Nav: ...]` markers (in `public/*.html` and `public/partials/footer.html`):
+Search for the yellow `[TODO Nav: ...]` markers (in `public/*.html`):
 
-- Daily maximum gummies in the caffeine warning (product area, FAQ, footer, Terms).
+- The caffeine warning (product area, FAQ, footer, Terms) is Tom's verbatim text from his "Marshawn Website Changes"
+  email (2026-11-05). Do not edit it.
 - Review the draft Privacy Policy and Terms of Sale: fill in the legal name, address, effective date, governing-law
   state and dispute resolution, have them checked, then remove the draft banners.
 
