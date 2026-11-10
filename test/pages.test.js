@@ -114,7 +114,7 @@ test('home page: SEO, sharing and icon tags, versioned assets', async () => {
     assert.match(html, /data-flavor="blue-razz" data-color="turquoise"[\s\S]*?pack-razzilicious\.webp/, 'Razzilicious card is turquoise with the new pack');
     assert.ok(!/pack-blue|pill-blue|data-color="blue"/.test(html), 'no blue left on the page');
     assert.ok(html.includes('Contains As Much Caffeine As:') && !/class="equation"|1 = 5|1 Pack = 5|1 pack = 5/i.test(html), 'Tom\'s banner wording, no equal sign');
-    assert.match(html, /class="hero-packs"[\s\S]*?id="the-box"[\s\S]*?data-box-sky[\s\S]*?marshawn-box\.webp[\s\S]*?From yo boi[\s\S]*?id="flavors"/, 'Marshawn with the box right under the hero, above the flavors (Nav)');
+    assert.match(html, /class="hero-packs"[\s\S]*?id="the-box"[\s\S]*?data-box-sky[\s\S]*?marshawn-box\.webp[\s\S]*?yoboi-logo[\s\S]*?From Yo Boi[\s\S]*?id="flavors"/, 'Marshawn with the box and his From Yo Boi logo right under the hero, above the flavors (Nav)');
     assert.doesNotMatch(html, /<!--#include|\{\{[A-Z]+\}\}/, 'no template syntax leaks');
     assert.doesNotMatch(html, /name="robots"/, 'home is indexable');
     assert.ok(html.includes('<strong>WARNING:</strong> One gummy contains 125 mg of RCF Caffeine. That is equivalent to (1) energy drink.') && html.includes('DO NOT consume this product if you have any heart conditions, or if pregnant or nursing.'), 'warning in Tom\'s words');
@@ -128,7 +128,8 @@ test('home page: SEO, sharing and icon tags, versioned assets', async () => {
 test('the RCF badge opens the full RCF infographic', async () => {
   await withServer(createApp({ stripe: null, publicUrl: ORIGIN, logger: quiet }), async (base) => {
     const html = await (await get(base, '/')).text();
-    assert.match(html, /<button[^>]*class="raw-badge raw-badge-btn"[^>]*data-rcf-open[^>]*>/, 'the badge is a real button');
+    assert.match(html, /<button[^>]*class="caff-badge raw-badge-btn"[^>]*data-rcf-open[^>]*>/, 'the 1-pack badge is a real button');
+    assert.match(html, /<button[^>]*class="raw-badge raw-badge-btn"[^>]*data-rcf-open[^>]*>/, 'the raw-coffee badge is a real button');
     assert.match(html, /aria-controls="rcf-dialog"/);
     assert.match(html, /<dialog id="rcf-dialog"[^>]*aria-labelledby="rcf-dialog-title"/);
     assert.match(html, /\/images\/rcf-infographic\.avif\?v=[0-9a-f]{10}/, 'AVIF first');
@@ -140,7 +141,8 @@ test('the RCF badge opens the full RCF infographic', async () => {
       assert.match(r.headers.get('content-type'), type, file);
     }
     const js = await (await get(base, '/js/app.js')).text();
-    assert.ok(js.includes("showModal") && js.includes('#rcf-dialog'), 'the button opens it with the native dialog');
+    assert.ok(js.includes("$$('[data-rcf-open]')") && js.includes('showModal') && js.includes('#rcf-dialog'), 'every badge opens it with the native dialog');
+    assert.ok(!js.includes('_blank'), 'the fallback stays on the site');
   });
 });
 

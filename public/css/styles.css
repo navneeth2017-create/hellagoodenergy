@@ -506,6 +506,13 @@ mark.todo {
   mask-composite: intersect;
 }
 .box-shot-copy { text-align: center; }
+.yoboi-logo {
+  display: block;
+  width: clamp(160px, 18vw, 220px);
+  margin: 0 auto 10px;
+  mix-blend-mode: screen;
+}
+.yoboi-logo img { display: block; width: 100%; height: auto; }
 .box-shot-copy .h2 em { color: var(--red); }
 .box-shot-copy .lede { margin-left: auto; margin-right: auto; }
 
@@ -933,6 +940,7 @@ html.has-cartbar body { padding-bottom: 80px; }
   .box-shot-grid { grid-template-columns: minmax(0, 640px) minmax(min-content, 1fr); gap: 48px; justify-items: stretch; }
   .box-stage { justify-self: end; width: min(640px, 100%); }
   .box-shot-copy { text-align: left; }
+  .box-shot-copy .yoboi-logo { margin-left: 0; }
   .box-shot-copy .lede { margin-left: 0; }
 
   .flavor-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -1177,14 +1185,26 @@ html.has-cartbar body { padding-bottom: 80px; }
 .rcf-dialog-scroll {
   flex: 1 1 auto;
   min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   background: #000;
 }
-.rcf-dialog-scroll img { width: 100%; height: auto; }
-.rcf-dialog-scroll.is-zoomed img { width: 200%; max-width: none; }
-.rcf-dialog-scroll.is-zoomed { cursor: zoom-out; }
+.rcf-dialog-scroll picture { display: block; }
+.rcf-dialog-scroll img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(90vh - 150px);
+  object-fit: contain;
+}
+.rcf-dialog-scroll.is-zoomed { display: block; cursor: zoom-out; }
+.rcf-dialog-scroll.is-zoomed img { width: 200%; max-width: none; max-height: none; }
+.caff-badge.raw-badge-btn { display: block; }
 .rcf-dialog-foot {
   display: flex;
   align-items: center;
@@ -1210,6 +1230,7 @@ html.has-cartbar body { padding-bottom: 80px; }
   }
   .rcf-dialog-head h2 { font-size: 13px; }
   .rcf-dialog-foot .btn { min-height: 38px; padding: 0 16px; font-size: 15px; }
+  .rcf-dialog-scroll img { max-height: calc(100dvh - 140px); }
 }
 @media (prefers-reduced-motion: reduce) {
   .raw-badge-btn img { transition: none; }

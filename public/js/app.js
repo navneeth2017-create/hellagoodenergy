@@ -453,13 +453,13 @@
 
   /* ---------- RCF infographic (the badge opens the full poster) ---------- */
   const rcfDialog = $('#rcf-dialog');
-  const rcfOpen = $('[data-rcf-open]');
-  if (rcfDialog && rcfOpen) {
+  const rcfOpens = $$('[data-rcf-open]');
+  if (rcfDialog && rcfOpens.length) {
     const rcfScroll = $('.rcf-dialog-scroll', rcfDialog);
     const rcfZoom = $('[data-rcf-zoom]', rcfDialog);
-    rcfOpen.addEventListener('click', () => {
+    rcfOpens.forEach((trigger) => trigger.addEventListener('click', () => {
       if (typeof rcfDialog.showModal !== 'function') {
-        window.open('/images/rcf-infographic.webp', '_blank', 'noopener');
+        window.location.href = '/images/rcf-infographic.webp';
         return;
       }
       rcfDialog.showModal();
@@ -467,7 +467,7 @@
       if (rcfScroll) rcfScroll.scrollTop = 0;
       const closeBtn = $('[data-rcf-close]', rcfDialog);
       if (closeBtn) closeBtn.focus();
-    });
+    }));
     if (rcfZoom && rcfScroll) {
       rcfZoom.addEventListener('click', () => {
         const zoomed = rcfScroll.classList.toggle('is-zoomed');
