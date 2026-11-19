@@ -314,6 +314,9 @@ function createApp(opts = {}) {
   app.get('/sitemap.xml', (req, res) => {
     res.set('Cache-Control', 'public, max-age=3600').type('application/xml').send(site.sitemapXml(originFor(req), renderer.sitemapRoutes()));
   });
+  app.get('/llms.txt', (req, res) => {
+    res.set('Cache-Control', 'public, max-age=3600').type('text/plain').send(site.llmsTxt(originFor(req)));
+  });
 
   // RFC 9116. Expires is always about six months out; the contact is a placeholder until Nav sets one.
   app.get('/.well-known/security.txt', (req, res) => {
